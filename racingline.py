@@ -2,6 +2,7 @@ import ac
 import acsys
 
 label1 = 0
+points = []
 
 
 def acMain(ac_version):
@@ -13,6 +14,8 @@ def acMain(ac_version):
     ac.setPosition(label1, 10, 50)
     ac.log("I have created the App")
 
+    ac.addRenderCallback(form , onFormRender)
+
     return "AC Python Tutorial 04"
 
 
@@ -22,3 +25,10 @@ def acUpdate(deltaT):
     position = ac.getCarState(0, acsys.CS.WorldPosition)
 
     ac.setText(label1, 'Position: %d %d %d' % position)
+
+
+def onFormRender(deltaT):
+    ac.glBegin(acsys.GL.Lines)
+    ac.glVertex2f(10, 10)
+    ac.glVertex2f(300, 300)
+    ac.glEnd()
