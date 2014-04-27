@@ -1,3 +1,17 @@
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+# Copyright (C) 2014 - Mathias Andre
+
 import ac
 import acsys
 
@@ -13,6 +27,8 @@ class Point(object):
         self.x = x
         self.y = y
         self.z = z
+        self.start = False  # Used to start a new line when rendering
+        self.end = False    # Used to end a line when rendering
 
 
 class Lap(object):
@@ -22,18 +38,24 @@ class Lap(object):
         self.valid = 1
         self.laptime = 0
 
-    def _last(self):
+    def last(self):
+        '''
+        Returns the last point from the lap
+        '''
         if self.points:
             return self.points[-1]
         else:
             return None
 
-    def normalise(self):
+    def normalise(self, current_lap):
         '''
         Return a normalised version of the points based on the widget
-        size and zoom level
+        size, zoom level and last position of current lap
         '''
-        last = self._last()
+        last = current_lap.last()
+        if not last:
+            # We don't have any data yet
+            return None
         result = []
 
         # TODO: handle "zoom"
@@ -50,18 +72,40 @@ class Lap(object):
 
         # Shift the points, only keep the one that actually fit
         # in the widget
+        out = False  # Whether or not the last point was outside the widget
         for point in self.points:
-            # ac.console('%d:%d %d:%d %d:%d' % (x, z, diff_x, diff_z, last[0], last[2]))
             x = point.x + diff_x
             y = point.y  # We ignore y for now
             z = point.z + diff_z
-            # ac.console('-** %d:%d - %d' % (x, z, last[0] + app_size_x / 2))
-            if x > app_size_x or x < 0:
-                break
-            if z > app_size_y or z < 0:
-                break
-            ac.console('** %d:%d' % (x, z))
-            result.append(Point(x, y, z))
+
+            if x > app_size_x or x < 0 or z > app_size_y or z < 0:
+                out = True
+                if result:
+                    result[-1].end = True
+                continue
+            
+            point = Point(x, y, z)
+            if out:
+                point.start = True
+                out = False
+
+            result.append(point)
+
+        return result
+
+    def render(self, color, current_lap):
+        '''
+        Renders the lap
+        '''
+        ac.glColor4f(*color)
+        ac.glBegin(acsys.GL.LineStrip)
+        for point in self.normalise(current_lap):
+            if point.end:
+                ac.glEnd()
+            if point.start:
+                ac.glBegin(acsys.GL.LineStrip)
+            ac.glVertex2f(point.x, point.z)
+        ac.glEnd()
 
 
 def acMain(ac_version):
@@ -107,16 +151,15 @@ def acUpdate(deltaT):
 
     # Get the current car's position and add it to current lap
     position = ac.getCarState(0, acsys.CS.WorldPosition)
-    current_lap.points.append(position)
+    current_lap.points.append(Point(*position))
 
 
 def onFormRender(deltaT):
+    current_lap = laps[-1]
     for i, lap in enumerate(laps):
-        if i == len(lap) - 1:
-            ac.glColor4f(0, 1, 0, 1)
+        if i == len(laps) - 1:
+            color = (0, 1, 0, 1)
         else:
-            ac.glColor4f(1, 0, 0, 1)
-        ac.glBegin(acsys.GL.LineStrip)
-        for point in lap.normalise():
-            ac.glVertex2f(point.x, point.z)
-        ac.glEnd()
+            color = (1, 0, 0, 1)
+
+        lap.render(color, current_lap)
