@@ -19,6 +19,8 @@ class Lap(object):
     def __init__(self, count):
         self.count = count
         self.points = []
+        self.valid = 1
+        self.laptime = 0
 
     def _last(self):
         if self.points:
@@ -79,6 +81,10 @@ def acUpdate(deltaT):
     global delta
     global laps
 
+    # Update the status of the current lap
+    current_lap = laps[-1]
+    current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
+
     # We only update the data every .5 seconds to prevent filling up
     # the memory with data points
     delta += deltaT
@@ -86,12 +92,22 @@ def acUpdate(deltaT):
         return
     delta = 0
 
+    # Check if we're in a new lap
+    lap_count = ac.getCarState(0, acsys.CS.LapCount)
+    if lap_count != current_lap.count:
+        # Record the previous lap time
+        current_lap.laptime = ac.getCarState(0, acsys.CS.LastLap)
+
+        # Create a new lap
+        current_lap = Lap(lap_count)
+        laps.append(current_lap)
+
 #    # We divide each coordinate by 2 to "zoom out"
 #    position = [i / 2 for i in position]
 
     # Get the current car's position and add it to current lap
     position = ac.getCarState(0, acsys.CS.WorldPosition)
-    laps[-1].points.append(position)
+    current_lap.points.append(position)
 
 
 def onFormRender(deltaT):
