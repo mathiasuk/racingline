@@ -155,11 +155,18 @@ def acUpdate(deltaT):
 
 
 def onFormRender(deltaT):
-    current_lap = laps[-1]
-    for i, lap in enumerate(laps):
-        if i == len(laps) - 1:
-            color = (0, 1, 0, 1)
-        else:
-            color = (1, 0, 0, 1)
+    current_lap = None
+    best_lap = None
+    for lap in laps:
+        # TODO: check we're finding the correct best lap
+        if not best_lap or best_lap.laptime > lap.laptime:
+            best_lap = lap
+    current_lap = lap
 
-        lap.render(color, current_lap)
+    if best_lap and best_lap.laptime:
+        color = (1, 0, 0, 1)
+        best_lap.render(color, current_lap)
+
+    if current_lap:
+        color = (0, 1, 0, 1)
+        current_lap.render(color, current_lap)
