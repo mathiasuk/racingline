@@ -73,12 +73,12 @@ class Session(object):
         if not os.path.exists(target_dir):
             os.mkdir(target_dir)
 
-        filename = '%s-%s-%s.json' % (datetime.now().isoformat(),
+        filename = '%s-%s-%s.json' % (datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
                    self.trackname, self.carname)
         f = open(os.path.join(target_dir, filename), 'w')
         f.write(self.dumps())
         f.close()
-        ac.console('Exported session data to: %s' % open(os.path.join(target_dir, filename)))
+        ac.console('Exported session data to: %s' % os.path.join(target_dir, filename))
 
 
 class Point(object):
