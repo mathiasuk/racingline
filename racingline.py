@@ -204,10 +204,10 @@ def acMain(ac_version):
     ac.setSize(appWindow, app_size_x, app_size_y)
     ac.addRenderCallback(appWindow, onFormRender)
 
-    button = ac.addButton(appWindow, "Export data")
-    ac.setPosition(button, 10, 10)
-    ac.setSize(button, 500, 10)
-    ac.addOnClickedListener(button, export_data_button_callback)
+#    button = ac.addButton(appWindow, "Export data")
+#    ac.setPosition(button, 10, 10)
+#    ac.setSize(button, 500, 10)
+#    ac.addOnClickedListener(button, export_data_button_callback)
 
     # Create session object
     session = Session()
