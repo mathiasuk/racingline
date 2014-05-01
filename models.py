@@ -90,6 +90,10 @@ class Session(object):
 
         # Write the current lap to file
         f.write(self.current_lap.json_dumps() + '\n')
+        f.close()
+
+        self.ac.console('Saved lap %d to file %s.' % (self.current_lap.count,
+                                                      filename))
 
         return os.path.join(target_dir, filename)
 

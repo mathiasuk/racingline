@@ -32,8 +32,8 @@ best_speed_label = None
 save_checkbox = None
 
 # colors:
-GREEN = (1, 0, 0, 1)
-RED = (0, 1, 0, 1)
+RED = (1, 0, 0, 1)
+GREEN = (0, 1, 0, 1)
 WHITE = (0, 1, 0, 1)
 
 
@@ -139,9 +139,9 @@ def onFormRender(deltaT):
     if session.best_lap:
         point = session.best_lap.closest_point(last_point)
         ac.setText(best_speed_label, "{0}".format(round(point.speed, 1)))
-        if point.speed > current_speed:
+        if point.speed > current_speed + 1:  # +1 is to avoid flickering
             ac.setFontColor(current_speed_label, *RED)
-        elif point.speed < current_speed:
+        elif point.speed < current_speed - 1:
             ac.setFontColor(current_speed_label, *GREEN)
         else:
             ac.setFontColor(current_speed_label, *WHITE)
