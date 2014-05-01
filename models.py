@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Copyright (C) 2014 - Mathias Andre
 
-import datetime
+from datetime import datetime
 import json
 import math
 import os
@@ -36,6 +36,12 @@ class Session(object):
         self.app_size_x = 0
         self.app_size_y = 0
         self.save_data = False
+        self.start_time = datetime.now()
+
+    def _get_export_filepath(self):
+        '''
+        Return the data filename for the current session
+        '''
 
     def new_lap(self, count):
         # Check if current_lap is faster than previous best
@@ -44,34 +50,47 @@ class Session(object):
                self.best_lap.laptime > self.current_lap.laptime:
                 self.best_lap = self.current_lap
 
+        # Save the current lap to file if necessary
+        if self.save_data:
+            self.export_data()
+
+        # Create new lap
         self.current_lap = Lap(self, count)
 
     def json_dumps(self):
         '''
         Returns a JSON representation of the Session
         '''
-        # TODO: this should probably be split:
-        # Write a "session header" to the file, then one line per lap
         return json.dumps({
             'trackname': self.trackname,
             'carname': self.carname,
         })
 
-    def export_data(self, export_dir):
+    def export_data(self):
         '''
         Export the Session data to a file in the plugin's directory
         Returns the path to the file
         '''
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        target_dir = os.path.join(current_dir, export_dir)
+        target_dir = os.path.join(current_dir, 'exports')
+
+        # Create the export directory if it doesn't already exists
         if not os.path.exists(target_dir):
             os.mkdir(target_dir)
 
         filename = '%s-%s-%s.json' % (datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
-                   self.trackname, self.carname)
-        f = open(os.path.join(target_dir, filename), 'w')
-        f.write(self.json_dumps())
-        f.close()
+                                      self.trackname, self.carname)
+
+        f = open(os.path.join(target_dir, filename), 'a')
+
+        # Check the position in the file, if we're at 0 then the file
+        # is new and write the session headers
+        if f.tell() == 0:
+            f.write(self.json_dumps() + '\n')
+
+        # Write the current lap to file
+        f.write(self.current_lap.json_dumps() + '\n')
+
         return os.path.join(target_dir, filename)
 
 
@@ -191,16 +210,16 @@ class Lap(object):
             self.session.ac.glVertex2f(point.x, point.z)
         self.session.ac.glEnd()
 
-    def dumps(self):
+    def json_dumps(self):
         '''
-        Returns a dict representation of the Lap that can be passed to JSON
+        Returns a JSON representation of the Lap
         '''
-        return {
+        return json.dumps({
             'count': self.count,
             'valid': self.valid,
             'laptime': self.laptime,
             'points': [point.dumps() for point in self.points],
-        }
+        })
 
     def closest_point(self, ref_point):
         '''

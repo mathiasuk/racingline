@@ -1,3 +1,4 @@
+import json
 import math
 import unittest
 
@@ -45,10 +46,10 @@ class TestLap(unittest.TestCase):
         self.assertTrue(result[0].equal_coords(Point(205, 0, 93)))
         self.assertTrue(result[1].equal_coords(Point(205, 0, 96)))
         self.assertTrue(result[2].equal_coords(Point(202, 0, 98)))
-        self.assertTrue(result[5].equal_coords(Point(200, 0, 100)))
+        self.assertTrue(result[3].equal_coords(Point(200, 0, 100)))
 
-    def test_dumps(self):
-        result = self.lap.dumps()
+    def test_json_dumps(self):
+        result = json.loads(self.lap.json_dumps())
         self.assertEqual(result['count'], self.lap.count)
         self.assertEqual(result['valid'], self.lap.valid)
         self.assertEqual(result['laptime'], self.lap.laptime)

@@ -23,7 +23,6 @@ import math
 acshm = AcSharedMemory(7)
 
 # Time since last data update
-export_dir = 'exports'
 delta = 0.0
 app_size_x = 400
 app_size_y = 200
