@@ -35,6 +35,7 @@ class Session(object):
         self.carname = ''
         self.app_size_x = 0
         self.app_size_y = 0
+        self.save_data = False
 
     def new_lap(self, count):
         # Check if current_lap is faster than previous best

@@ -30,6 +30,7 @@ app_size_y = 200
 session = None
 current_speed_label = None
 best_speed_label = None
+save_checkbox = None
 
 # colors:
 GREEN = (1, 0, 0, 1)
@@ -45,7 +46,7 @@ def log_error(msg):
 
 
 def acMain(ac_version):
-    global session, current_speed_label, best_speed_label
+    global session, current_speed_label, best_speed_label, save_checkbox
 
     # Create App Widget
     appWindow = ac.newApp('Racing Line')
@@ -57,6 +58,7 @@ def acMain(ac_version):
 #    ac.setSize(button, 500, 10)
 #    ac.addOnClickedListener(button, export_data_button_callback)
 
+    # Create labels
     label = ac.addLabel(appWindow, 'Current speed')
     ac.setText(label, 'Speed')
     ac.setPosition(label, 10, 30)
@@ -69,6 +71,12 @@ def acMain(ac_version):
     best_speed_label = ac.addLabel(appWindow, 'Best speed value')
     ac.setText(best_speed_label, '')
     ac.setPosition(best_speed_label, 60, 50)
+
+    # Create checkbox
+    save_checkbox = ac.addCheckBox(appWindow, 'Export data')
+    ac.setSize(save_checkbox, 10, 10)
+    ac.setPosition(save_checkbox, 10, 180)
+    ac.addOnCheckBoxChanged(save_checkbox, save_checkbox_callback)
 
     # Create session object
     session = Session(ac, acsys)
@@ -117,7 +125,7 @@ def acUpdate(deltaT):
 
 def onFormRender(deltaT):
     # Get current heading:
-    heading = acshm.readValue("physics", "heading")
+    heading = math.pi - acshm.readValue("physics", "heading")
 
     if session.best_lap:
         session.best_lap.render(GREEN, session.current_lap, heading)
@@ -140,6 +148,10 @@ def onFormRender(deltaT):
             ac.setFontColor(current_speed_label, *WHITE)
 
 
-def export_data_button_callback(x, y):
-    path = session.export_data(export_dir)
-    ac.console('Exported session data to: %s' % path)
+def save_checkbox_callback(name, state):
+    global session
+    if state:
+        session.save_data = True
+    else:
+        session.save_data = False
+    ac.console('** %s' % session.save_data)
