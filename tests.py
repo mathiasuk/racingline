@@ -1,3 +1,4 @@
+import math
 import unittest
 
 from models import Point, Lap, Session
@@ -31,20 +32,20 @@ class TestLap(unittest.TestCase):
         session.app_size_x = 400
         session.app_size_y = 200
         self.lap = Lap(session, 0)
-        self.lap.points.append(Point(10, 0, 100, 100, 0.9, 0, 0.2))
-        self.lap.points.append(Point(13, 0, 101, 110, 1.0, 0, 0.0))
-        self.lap.points.append(Point(15, 0, 103, 130, 1.0, 0, 0.0))
-        self.lap.points.append(Point(20, 0, 107, 140, 0.1, 0.8, 0.9))
+        self.lap.points.append(Point(10, 0, 10, 100, 0.9, 0, 0.2))
+        self.lap.points.append(Point(13, 0, 10, 110, 1.0, 0, 0.0))
+        self.lap.points.append(Point(15, 0, 13, 130, 1.0, 0, 0.0))
+        self.lap.points.append(Point(17, 0, 15, 140, 0.1, 0.8, 0.9))
 
     def test_last_point(self):
         self.assertEqual(self.lap.last_point, self.lap.points[-1])
 
     def test_normalise(self):
-        result = self.lap.normalise(self.lap)
-        self.assertTrue(result[0].equal_coords(Point(190, 0, 93)))
-        self.assertTrue(result[1].equal_coords(Point(193, 0, 94)))
-        self.assertTrue(result[2].equal_coords(Point(195, 0, 96)))
-        self.assertTrue(result[3].equal_coords(Point(200, 0, 100)))
+        result = self.lap.normalise(self.lap, math.pi / 2)
+        self.assertTrue(result[0].equal_coords(Point(205, 0, 93)))
+        self.assertTrue(result[1].equal_coords(Point(205, 0, 96)))
+        self.assertTrue(result[2].equal_coords(Point(202, 0, 98)))
+        self.assertTrue(result[5].equal_coords(Point(200, 0, 100)))
 
     def test_dumps(self):
         result = self.lap.dumps()
@@ -56,7 +57,7 @@ class TestLap(unittest.TestCase):
             self.assertTrue(point.equal_coords(self.lap.points[i]))
 
     def test_closest_point(self):
-        point = Point(14, 0, 103)
+        point = Point(14, 0, 13)
         self.assertEqual(self.lap.closest_point(point), self.lap.points[2])
 
 

@@ -153,12 +153,8 @@ class Lap(object):
         out = False  # Whether or not the last point was outside the widget
         for point in self.points:
             # Rotate the point by 'heading' rad around the center (last point)
-            distance = math.sqrt((point.x - last_point.x) ** 2 + \
-                                 (point.z - last_point.z) ** 2)
-            x = last_point.x + (math.cos(heading) * distance)
-            z = last_point.z - (math.sin(heading) * distance)
-            self.session.ac.console('%d:%d %d:%d .3%f)' % (point.x, point.z, x, z, heading))
-
+            x = math.cos(heading) * (point.x - last_point.x) - math.sin(heading) * (point.z - last_point.z) + last_point.x
+            z = math.sin(heading) * (point.x - last_point.x) + math.cos(heading) * (point.z - last_point.z) + last_point.z
 
             x = x + diff_x
             y = point.y  # We ignore y for now
