@@ -78,7 +78,7 @@ class Session(object):
         if not os.path.exists(target_dir):
             os.mkdir(target_dir)
 
-        filename = '%s-%s-%s.json' % (datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
+        filename = '%s-%s-%s.json' % (self.start_time.strftime('%Y-%m-%d-%H-%M-%S'),
                                       self.trackname, self.carname)
 
         f = open(os.path.join(target_dir, filename), 'a')
