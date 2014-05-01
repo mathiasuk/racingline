@@ -24,6 +24,8 @@ laps = []
 app_size_x = 400
 app_size_y = 200
 session = None
+current_speed_label = None
+best_speed_label = None
 
 
 def log_error(msg):
@@ -34,7 +36,7 @@ def log_error(msg):
 
 
 def acMain(ac_version):
-    global session
+    global session, current_speed_label, best_speed_label
 
     # Create App Widget
     appWindow = ac.newApp('Racing Line')
@@ -45,6 +47,19 @@ def acMain(ac_version):
 #    ac.setPosition(button, 10, 10)
 #    ac.setSize(button, 500, 10)
 #    ac.addOnClickedListener(button, export_data_button_callback)
+
+    label = ac.addLabel(appWindow, 'Current speed')
+    ac.setText(label, 'Speed')
+    ac.setPosition(label, 10, 30)
+    label = ac.addLabel(appWindow, 'Best speed')
+    ac.setText(label, 'Best')
+    ac.setPosition(label, 10, 50)
+    current_speed_label = ac.addLabel(appWindow, 'Best speed value')
+    ac.setText(current_speed_label, '')
+    ac.setPosition(current_speed_label, 40, 30)
+    best_speed_label = ac.addLabel(appWindow, 'Best speed value')
+    ac.setText(best_speed_label, '')
+    ac.setPosition(best_speed_label, 40, 50)
 
     # Create session object
     session = Session()
@@ -104,6 +119,17 @@ def onFormRender(deltaT):
 
     color = (0, 1, 0, 1)
     session.current_lap.render(ac, acsys, color, session.current_lap)
+
+    last_point = session.current_lap.last_point
+    ac.setText(current_speed_label, "{0}".format(round(last_point.speed, 1)))
+    # Get closest point of best lap:
+    if best_lap:
+        point = best_lap.closest_point(last_point)
+        ac.setText(best_speed_label, "{0}".format(round(point.speed, 1)))
+        if point.speed > last_point.speed:
+            ac.setFontColor(current_speed_label, 0, 1, 0, 1)
+        else:
+            ac.setFontColor(current_speed_label, 1, 0, 0, 1)
 
 
 def export_data_button_callback(x, y):
