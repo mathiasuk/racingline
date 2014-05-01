@@ -56,10 +56,10 @@ def acMain(ac_version):
     ac.setPosition(label, 10, 50)
     current_speed_label = ac.addLabel(appWindow, 'Best speed value')
     ac.setText(current_speed_label, '')
-    ac.setPosition(current_speed_label, 40, 30)
+    ac.setPosition(current_speed_label, 60, 30)
     best_speed_label = ac.addLabel(appWindow, 'Best speed value')
     ac.setText(best_speed_label, '')
-    ac.setPosition(best_speed_label, 40, 50)
+    ac.setPosition(best_speed_label, 60, 50)
 
     # Create session object
     session = Session()
@@ -80,10 +80,10 @@ def acUpdate(deltaT):
     # Update the status of the current lap
     session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
 
-    # We only update the data every .5 seconds to prevent filling up
+    # We only update the data every .25 seconds to prevent filling up
     # the memory with data points
     delta += deltaT
-    if delta < 0.5:
+    if delta < 0.25:
         return
     delta = 0
 
@@ -108,28 +108,33 @@ def acUpdate(deltaT):
 
 def onFormRender(deltaT):
     best_lap = None
+    # TODO: add get_best lap method to Session
     for lap in session.laps:
-        # TODO: check we're finding the correct best lap
-        if not best_lap or best_lap.laptime > lap.laptime:
+        if lap == session.current_lap:
+            continue
+        if not best_lap or best_lap.laptime < lap.laptime:
             best_lap = lap
 
     if best_lap and best_lap.laptime:
-        color = (1, 0, 0, 1)
+        color = (1, 0, 0, 1)  # green
         best_lap.render(ac, acsys, color, session.current_lap)
 
-    color = (0, 1, 0, 1)
+    color = (0, 1, 0, 1)  # red
     session.current_lap.render(ac, acsys, color, session.current_lap)
 
     last_point = session.current_lap.last_point
-    ac.setText(current_speed_label, "{0}".format(round(last_point.speed, 1)))
+    current_speed = ac.getCarState(0, acsys.CS.SpeedKMH)
+    ac.setText(current_speed_label, "{0}".format(round(current_speed, 1)))
     # Get closest point of best lap:
-    if best_lap:
+    if best_lap :
         point = best_lap.closest_point(last_point)
         ac.setText(best_speed_label, "{0}".format(round(point.speed, 1)))
-        if point.speed > last_point.speed:
+        if point.speed > current_speed:
+            ac.setFontColor(current_speed_label, 1, 0, 0, 1)
+        elif point.speed < current_speed:
             ac.setFontColor(current_speed_label, 0, 1, 0, 1)
         else:
-            ac.setFontColor(current_speed_label, 1, 0, 0, 1)
+            ac.setFontColor(current_speed_label, 1, 1, 1, 1)
 
 
 def export_data_button_callback(x, y):
