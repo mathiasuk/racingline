@@ -12,11 +12,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Copyright (C) 2014 - Mathias Andre
 
+from models import Session, Point
+
 import ac
 import acsys
-from datetime import datetime
-import json
-import os
 
 # Time since last data update
 export_dir = 'exports'
@@ -34,168 +33,6 @@ def log_error(msg):
     ac.console('ERROR(racingline): %s')
 
 
-class Session(object):
-    '''
-    Represent a racing sessions, stores laps, etc.
-    '''
-    def __init__(self):
-        self.laps = []
-        self.trackname = ''
-        self.carname = ''
-
-    def add_lap(self, count):
-        self.laps.append(Lap(count))
-
-    @property
-    def current_lap(self):
-        try:
-            return self.laps[-1]
-        except IndexError:
-            log_error('No current lap!')
-            return None
-
-    def dumps(self):
-        '''
-        Returns a JSON representation of the Session
-        '''
-        return json.dumps({
-            'trackname': self.trackname,
-            'carname': self.carname,
-            'laps': [lap.dumps() for lap in self.laps],
-        })
-
-    def export_data(self):
-        '''
-        Export the Session data to a file in the plugin's directory
-        '''
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        target_dir = os.path.join(current_dir, export_dir)
-        if not os.path.exists(target_dir):
-            os.mkdir(target_dir)
-
-        filename = '%s-%s-%s.json' % (datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
-                   self.trackname, self.carname)
-        f = open(os.path.join(target_dir, filename), 'w')
-        f.write(self.dumps())
-        f.close()
-        ac.console('Exported session data to: %s' % os.path.join(target_dir, filename))
-
-
-class Point(object):
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.speed = 0      # Speed in Km/h
-        self.gas = 0
-        self.brake = 0
-        self.clutch = 0
-        self.start = False  # Used to start a new line when rendering
-        self.end = False    # Used to end a line when rendering
-
-    def dumps(self):
-        '''
-        Returns a JSON representation of the Point
-        '''
-        return json.dumps({
-            'x': self.x,
-            'y': self.y,
-            'z': self.z,
-            'speed': self.speed,
-            'gas': self.gas,
-            'brake': self.brake,
-            'clutch': self.clutch,
-        })
-
-
-class Lap(object):
-    def __init__(self, count):
-        self.count = count
-        self.points = []
-        self.valid = 1
-        self.laptime = 0
-
-    def last(self):
-        '''
-        Returns the last point from the lap
-        '''
-        if self.points:
-            return self.points[-1]
-        else:
-            return None
-
-    def normalise(self, current_lap):
-        '''
-        Return a normalised version of the points based on the widget
-        size, zoom level and last position of current lap
-        '''
-        last = current_lap.last()
-        if not last:
-            # We don't have any data yet
-            return None
-        result = []
-
-        # TODO: handle "zoom"
-
-        # Calculate the shift to fit the points within the widget
-        if last.x > app_size_x / 2:
-            diff_x = -(last.x - app_size_x / 2)
-        else:
-            diff_x = app_size_x / 2 - last.x
-        if last.z > app_size_y / 2:
-            diff_z = -(last.z - app_size_y / 2)
-        else:
-            diff_z = app_size_y / 2 - last.z
-
-        # Shift the points, only keep the one that actually fit
-        # in the widget
-        out = False  # Whether or not the last point was outside the widget
-        for point in self.points:
-            x = point.x + diff_x
-            y = point.y  # We ignore y for now
-            z = point.z + diff_z
-
-            if x > app_size_x or x < 0 or z > app_size_y or z < 0:
-                out = True
-                if result:
-                    result[-1].end = True
-                continue
-
-            point = Point(x, y, z)
-            if out:
-                point.start = True
-                out = False
-
-            result.append(point)
-
-        return result
-
-    def render(self, color, current_lap):
-        '''
-        Renders the lap
-        '''
-        ac.glColor4f(*color)
-        ac.glBegin(acsys.GL.LineStrip)
-        for point in self.normalise(current_lap):
-            if point.end:
-                ac.glEnd()
-            if point.start:
-                ac.glBegin(acsys.GL.LineStrip)
-            ac.glVertex2f(point.x, point.z)
-        ac.glEnd()
-
-    def dumps(self):
-        '''
-        Returns a JSON representation of the Lap
-        '''
-        return json.dumps({
-            'count': self.count,
-            'valid': self.valid,
-            'laptime': self.laptime,
-            'points': [point.dumps() for point in self.points],
-        })
-
-
 def acMain(ac_version):
     global session
 
@@ -211,6 +48,8 @@ def acMain(ac_version):
 
     # Create session object
     session = Session()
+    session.app_size_x = app_size_x
+    session.app_size_y = app_size_y
     session.trackname = ac.getTrackName(0)
     session.carname = ac.getCarName(0)
 
@@ -261,11 +100,12 @@ def onFormRender(deltaT):
 
     if best_lap and best_lap.laptime:
         color = (1, 0, 0, 1)
-        best_lap.render(color, session.current_lap)
+        best_lap.render(ac, acsys, color, session.current_lap)
 
     color = (0, 1, 0, 1)
-    session.current_lap.render(color, session.current_lap)
+    session.current_lap.render(ac, acsys, color, session.current_lap)
 
 
 def export_data_button_callback(x, y):
-    session.export_data()
+    path = session.export_data(export_dir)
+    ac.console('Exported session data to: %s' % path)
