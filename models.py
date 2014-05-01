@@ -14,6 +14,7 @@
 
 import datetime
 import json
+import math
 import os
 
 
@@ -124,7 +125,7 @@ class Lap(object):
         else:
             return None
 
-    def normalise(self, current_lap):
+    def normalise(self, current_lap, heading):
         '''
         Return a normalised version of the points based on the widget
         size, zoom level and last position of current lap
@@ -151,9 +152,17 @@ class Lap(object):
         # in the widget
         out = False  # Whether or not the last point was outside the widget
         for point in self.points:
-            x = point.x + diff_x
+            # Rotate the point by 'heading' rad around the center (last point)
+            distance = math.sqrt((point.x - last_point.x) ** 2 + \
+                                 (point.z - last_point.z) ** 2)
+            x = last_point.x + (math.cos(heading) * distance)
+            z = last_point.z - (math.sin(heading) * distance)
+            self.session.ac.console('%d:%d %d:%d .3%f)' % (point.x, point.z, x, z, heading))
+
+
+            x = x + diff_x
             y = point.y  # We ignore y for now
-            z = point.z + diff_z
+            z = z + diff_z
 
             if x > self.session.app_size_x or x < 0 or \
                z > self.session.app_size_y or z < 0:
@@ -171,13 +180,13 @@ class Lap(object):
 
         return result
 
-    def render(self, color, current_lap):
+    def render(self, color, current_lap, heading):
         '''
         Renders the lap
         '''
         self.session.ac.glColor4f(*color)
         self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
-        for point in self.normalise(current_lap):
+        for point in self.normalise(current_lap, heading):
             if point.end:
                 self.session.ac.glEnd()
             if point.start:

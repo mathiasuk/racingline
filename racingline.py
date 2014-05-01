@@ -13,10 +13,14 @@
 # Copyright (C) 2014 - Mathias Andre
 
 from models import Session, Point
-from shared import AcPhysics
+from acpmf import AcSharedMemory
 
 import ac
 import acsys
+import math
+
+# Share memory stuff
+acshm = AcSharedMemory(7)
 
 # Time since last data update
 export_dir = 'exports'
@@ -85,8 +89,6 @@ def acUpdate(deltaT):
     # Update the status of the current lap
     session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
 
-    ac.console('Heading: %s', AcPhysics['heading'])
-
     # We only update the data every .1 seconds to prevent filling up
     # the memory with data points
     delta += deltaT
@@ -114,10 +116,13 @@ def acUpdate(deltaT):
 
 
 def onFormRender(deltaT):
-    if session.best_lap:
-        session.best_lap.render(GREEN, session.current_lap)
+    # Get current heading:
+    heading = acshm.readValue("physics", "heading")
 
-    session.current_lap.render(RED, session.current_lap)
+    if session.best_lap:
+        session.best_lap.render(GREEN, session.current_lap, heading)
+
+    session.current_lap.render(RED, session.current_lap, heading)
 
     last_point = session.current_lap.last_point
     current_speed = ac.getCarState(0, acsys.CS.SpeedKMH)
