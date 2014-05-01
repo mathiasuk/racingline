@@ -13,6 +13,7 @@
 # Copyright (C) 2014 - Mathias Andre
 
 from models import Session, Point
+from shared import AcPhysics
 
 import ac
 import acsys
@@ -83,6 +84,8 @@ def acUpdate(deltaT):
 
     # Update the status of the current lap
     session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
+
+    ac.console('Heading: %s', AcPhysics['heading'])
 
     # We only update the data every .1 seconds to prevent filling up
     # the memory with data points
