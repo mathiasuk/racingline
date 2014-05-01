@@ -21,31 +21,38 @@ class Session(object):
     '''
     Represent a racing sessions, stores laps, etc.
     '''
-    def __init__(self):
-        self.laps = []
+    def __init__(self, ac=None, acsys=None):
+        '''
+        We pass ac and acsys so we don't have to import them here,
+        that way we can test the code without AC modules
+        '''
+        self.ac = ac
+        self.acsys = acsys
+        self.current_lap = None
+        self.best_lap = None
         self.trackname = ''
         self.carname = ''
         self.app_size_x = 0
         self.app_size_y = 0
 
-    def add_lap(self, count):
-        self.laps.append(Lap(self, count))
+    def new_lap(self, count):
+        # Check if current_lap is faster than previous best
+        if self.current_lap:
+            if not self.best_lap or \
+               self.best_lap.laptime > self.current_lap.laptime:
+                self.best_lap = self.current_lap
 
-    @property
-    def current_lap(self):
-        try:
-            return self.laps[-1]
-        except IndexError:
-            return None
+        self.current_lap = Lap(self, count)
 
     def json_dumps(self):
         '''
         Returns a JSON representation of the Session
         '''
+        # TODO: this should probably be split:
+        # Write a "session header" to the file, then one line per lap
         return json.dumps({
             'trackname': self.trackname,
             'carname': self.carname,
-            'laps': [lap.dumps() for lap in self.laps],
         })
 
     def export_data(self, export_dir):
@@ -164,24 +171,19 @@ class Lap(object):
 
         return result
 
-    def render(self, ac, acsys, color, current_lap):
+    def render(self, color, current_lap):
         '''
         Renders the lap
-        We pass ac and acsys so we don't have to import
-        them in this file and can run the test suite
         '''
-        if not ac or not acsys:
-            return
-
-        ac.glColor4f(*color)
-        ac.glBegin(acsys.GL.LineStrip)
+        self.session.ac.glColor4f(*color)
+        self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
         for point in self.normalise(current_lap):
             if point.end:
-                ac.glEnd()
+                self.session.ac.glEnd()
             if point.start:
-                ac.glBegin(acsys.GL.LineStrip)
-            ac.glVertex2f(point.x, point.z)
-        ac.glEnd()
+                self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
+            self.session.ac.glVertex2f(point.x, point.z)
+        self.session.ac.glEnd()
 
     def dumps(self):
         '''

@@ -64,10 +64,29 @@ class TestSession(unittest.TestCase):
     def setUp(self):
         self.session = Session()
 
-    def test_current_lap(self):
+    def test_new_lap(self):
         self.assertEqual(self.session.current_lap, None)
-        self.session.add_lap(0)
-        self.assertEqual(self.session.current_lap, self.session.laps[-1])
+        self.session.new_lap(0)
+        self.session.current_lap.laptime = 6000
+
+        # Check best_lap is set correctly:
+        self.session.new_lap(1)
+        self.assertEqual(self.session.best_lap.laptime, 6000)
+
+        # Add slower lap
+        self.session.current_lap.laptime = 8000
+        self.session.new_lap(2)
+
+        # Check best_lap is still correct
+        self.assertEqual(self.session.best_lap.laptime, 6000)
+
+        # Add faster lap
+        self.session.current_lap.laptime = 5500
+        self.session.new_lap(3)
+
+        # Check best_lap has been updated
+        self.assertEqual(self.session.best_lap.laptime, 5500)
+
 
 if __name__ == '__main__':
     unittest.main()
