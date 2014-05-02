@@ -99,14 +99,14 @@ class Session(object):
 
 
 class Point(object):
-    def __init__(self, x, y, z, speed=0, gas=0, brake=0, clutch=0):
+    def __init__(self, x, y, z, s=0, g=0, b=0, c=0):
         self.x = x
         self.y = y
         self.z = z
-        self.speed = speed      # Speed in Km/h
-        self.gas = gas
-        self.brake = brake
-        self.clutch = clutch
+        self.speed = s      # Speed in Km/h
+        self.gas = g
+        self.brake = b
+        self.clutch = c
         self.start = False  # Used to start a new line when rendering
         self.end = False    # Used to end a line when rendering
 
@@ -124,10 +124,10 @@ class Point(object):
             'x': self.x,
             'y': self.y,
             'z': self.z,
-            'speed': self.speed,
-            'gas': self.gas,
-            'brake': self.brake,
-            'clutch': self.clutch,
+            's': self.speed,
+            'g': self.gas,
+            'b': self.brake,
+            'c': self.clutch,
         }
 
 

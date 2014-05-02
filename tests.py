@@ -21,10 +21,10 @@ class TestPoint(unittest.TestCase):
         self.assertEqual(result['x'], self.point.x)
         self.assertEqual(result['y'], self.point.y)
         self.assertEqual(result['z'], self.point.z)
-        self.assertEqual(result['speed'], self.point.speed)
-        self.assertEqual(result['gas'], self.point.gas)
-        self.assertEqual(result['brake'], self.point.brake)
-        self.assertEqual(result['clutch'], self.point.clutch)
+        self.assertEqual(result['s'], self.point.speed)
+        self.assertEqual(result['g'], self.point.gas)
+        self.assertEqual(result['b'], self.point.brake)
+        self.assertEqual(result['c'], self.point.clutch)
 
 
 class TestLap(unittest.TestCase):
