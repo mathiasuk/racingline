@@ -13,7 +13,6 @@
 # Copyright (C) 2014 - Mathias Andre
 
 from models import Session, Point
-from models import get_color_from_ratio
 from acpmf import AcSharedMemory
 
 import ac
@@ -97,6 +96,10 @@ def acUpdate(deltaT):
     # Update the status of the current lap
     session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
 
+    session.current_data['current_speed'] = ac.getCarState(0, acsys.CS.SpeedKMH)
+    session.current_data['tyre_radius'] = ac.getCarState(0, acsys.CS.TyreRadius)
+    session.current_data['wheel_angular_speed'] = ac.getCarState(0, acsys.CS.WheelAngularSpeed)
+
     # We only update the data every .1 seconds to prevent filling up
     # the memory with data points
     delta += deltaT
@@ -135,7 +138,7 @@ def onFormRender(deltaT):
     session.current_lap.render(RED, session.current_lap, heading)
 
     last_point = session.current_lap.last_point
-    current_speed = ac.getCarState(0, acsys.CS.SpeedKMH)
+    current_speed = session.current_data['current_speed']
     ac.setText(current_speed_label, "{0}".format(round(current_speed, 1)))
 
     # Get closest point of best lap:
@@ -149,22 +152,7 @@ def onFormRender(deltaT):
         else:
             ac.setFontColor(current_speed_label, *WHITE)
 
-
-def render_tyres_slip():
-    '''
-    Display the current tyres slip ratio
-    '''
-    # Get the tyres slip ratio
-    slip_ratios = ac.getCarState(0, acsys.CS.SlipRatio)
-
-    ac.glColor4f(*get_color_from_ratio(slip_ratios[0]))
-    ac.glQuad(360, 10, 10, 10)
-    ac.glColor4f(*get_color_from_ratio(slip_ratios[1]))
-    ac.glQuad(380, 10, 10, 10)
-    ac.glColor4f(*get_color_from_ratio(slip_ratios[2]))
-    ac.glQuad(360, 30, 10, 10)
-    ac.glColor4f(*get_color_from_ratio(slip_ratios[3]))
-    ac.glQuad(360, 30, 10, 10)
+    session.render_tyres_slip()
 
 
 def save_checkbox_callback(name, state):

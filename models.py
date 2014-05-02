@@ -37,13 +37,13 @@ class Session(object):
         self.app_size_y = 0
         self.save_data = False
         self.start_time = datetime.now()
-
-    def _get_export_filepath(self):
-        '''
-        Return the data filename for the current session
-        '''
+        self.current_data = {}
 
     def new_lap(self, count):
+        '''
+        Create a new lap, save best lap if previous lap was faster
+        than current best
+        '''
         # Check if current_lap is faster than previous best
         if self.current_lap:
             if not self.best_lap or \
@@ -56,6 +56,39 @@ class Session(object):
 
         # Create new lap
         self.current_lap = Lap(self, count)
+
+    def _get_tyres_slip(self):
+        wheel_angular_speed = self.current_data['wheel_angular_speed']
+        tyre_radius = self.current_data['tyre_radius']
+        current_speed = self.current_data['current_speed']
+
+        # Calculate the wheel speed:
+        # Angular_speed (radians) * radius = m/s converted to km/h
+        wheel_speed = [w * tyre_radius * 3600 / 1000 for w in wheel_angular_speed]
+
+        # Calculate the locking ratio:
+        if current_speed:
+            lock_ratios = [1 - w / current_speed for w in wheel_speed]
+        else:
+            lock_ratios = [0 for w in wheel_speed]
+
+        return lock_ratios
+
+    def render_tyres_slip(self):
+        '''
+        Render the tyres slip widget
+        '''
+        # Get the tyres slip ratio
+        lock_ratios = self._get_tyres_slip()
+
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[0]))
+        self.ac.glQuad(360, 10, 10, 10)
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[1]))
+        self.ac.glQuad(380, 10, 10, 10)
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[2]))
+        self.ac.glQuad(360, 30, 10, 10)
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[3]))
+        self.ac.glQuad(360, 30, 10, 10)
 
     def json_dumps(self):
         '''
