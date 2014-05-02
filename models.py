@@ -242,3 +242,13 @@ class Lap(object):
                 closest = point
 
         return closest
+
+
+def get_color_from_ratio(ratio):
+    '''
+    Return a color from green (ratio 0) to red (ratio 1)
+    '''
+    if ratio <= 0.5:
+        return (ratio * 2, 1, 0, 1)
+    else:
+        return (1, 1 - (ratio - 0.5) * 2, 0, 1)

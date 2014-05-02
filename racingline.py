@@ -13,6 +13,7 @@
 # Copyright (C) 2014 - Mathias Andre
 
 from models import Session, Point
+from models import get_color_from_ratio
 from acpmf import AcSharedMemory
 
 import ac
@@ -147,6 +148,23 @@ def onFormRender(deltaT):
             ac.setFontColor(current_speed_label, *GREEN)
         else:
             ac.setFontColor(current_speed_label, *WHITE)
+
+
+def render_tyres_slip():
+    '''
+    Display the current tyres slip ratio
+    '''
+    # Get the tyres slip ratio
+    slip_ratios = ac.getCarState(0, acsys.CS.SlipRatio)
+
+    ac.glColor4f(*get_color_from_ratio(slip_ratios[0]))
+    ac.glQuad(360, 10, 10, 10)
+    ac.glColor4f(*get_color_from_ratio(slip_ratios[1]))
+    ac.glQuad(380, 10, 10, 10)
+    ac.glColor4f(*get_color_from_ratio(slip_ratios[2]))
+    ac.glQuad(360, 30, 10, 10)
+    ac.glColor4f(*get_color_from_ratio(slip_ratios[3]))
+    ac.glQuad(360, 30, 10, 10)
 
 
 def save_checkbox_callback(name, state):

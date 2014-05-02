@@ -2,7 +2,7 @@ import json
 import math
 import unittest
 
-from models import Point, Lap, Session
+from models import Point, Lap, Session, get_color_from_ratio
 
 
 class TestPoint(unittest.TestCase):
@@ -88,6 +88,15 @@ class TestSession(unittest.TestCase):
 
         # Check best_lap has been updated
         self.assertEqual(self.session.best_lap.laptime, 5500)
+
+
+class TestMisc(unittest.TestCase):
+    def test_get_color_from_ratio(self):
+        self.assertEqual(get_color_from_ratio(0), (0, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.25), (0.5, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.5), (1, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.75), (1, 0.5, 0, 1))
+        self.assertEqual(get_color_from_ratio(1), (1, 0, 0, 1))
 
 
 if __name__ == '__main__':
