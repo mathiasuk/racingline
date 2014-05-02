@@ -47,7 +47,7 @@ class Session(object):
         # Check if current_lap is faster than previous best
         if self.current_lap:
             if not self.best_lap or \
-               self.current_lap.laptime > self.best_lap.laptime:
+               self.current_lap.laptime < self.best_lap.laptime:
                 self.best_lap = self.current_lap
 
         # Save the current lap to file if necessary

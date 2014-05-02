@@ -123,6 +123,8 @@ def acUpdate(deltaT):
 
 
 def onFormRender(deltaT):
+    global session
+
     # Get current heading:
     heading = math.pi - acshm.readValue("physics", "heading")
 
