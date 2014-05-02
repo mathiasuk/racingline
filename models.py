@@ -64,10 +64,12 @@ class Session(object):
 
         # Calculate the wheel speed:
         # Angular_speed (radians) * radius = m/s converted to km/h
-        wheel_speed = [w * tyre_radius * 3600 / 1000 for w in wheel_angular_speed]
+        wheel_speed = []
+        for speed, radius in zip(wheel_angular_speed, tyre_radius):
+            wheel_speed.append(speed * radius * 3600 / 1000)
 
         # Calculate the locking ratio:
-        if current_speed:
+        if current_speed > 1:
             lock_ratios = [1 - w / current_speed for w in wheel_speed]
         else:
             lock_ratios = [0 for w in wheel_speed]
@@ -82,13 +84,13 @@ class Session(object):
         lock_ratios = self._get_tyres_slip()
 
         self.ac.glColor4f(*get_color_from_ratio(lock_ratios[0]))
-        self.ac.glQuad(360, 10, 10, 10)
+        self.ac.glQuad(380, 30, 5, 10)
         self.ac.glColor4f(*get_color_from_ratio(lock_ratios[1]))
-        self.ac.glQuad(380, 10, 10, 10)
+        self.ac.glQuad(390, 30, 5, 10)
         self.ac.glColor4f(*get_color_from_ratio(lock_ratios[2]))
-        self.ac.glQuad(360, 30, 10, 10)
+        self.ac.glQuad(380, 50, 5, 10)
         self.ac.glColor4f(*get_color_from_ratio(lock_ratios[3]))
-        self.ac.glQuad(360, 30, 10, 10)
+        self.ac.glQuad(390, 50, 5, 10)
 
     def json_dumps(self):
         '''
