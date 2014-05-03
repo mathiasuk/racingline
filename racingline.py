@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Copyright (C) 2014 - Mathias Andre
 
-from models import Session, Point
+from models import Session, Point, colors
 from acpmf import AcSharedMemory
 
 import ac
@@ -32,11 +32,6 @@ session = None
 current_speed_label = None
 best_speed_label = None
 save_checkbox = None
-
-# colors:
-RED = (1, 0, 0, 1)
-GREEN = (0, 1, 0, 1)
-WHITE = (0, 1, 0, 1)
 
 
 def acMain(ac_version):
@@ -120,6 +115,13 @@ def acUpdate(deltaT):
     point.gas = ac.getCarState(0, acsys.CS.Gas)
     point.brake = ac.getCarState(0, acsys.CS.Brake)
     point.clutch = ac.getCarState(0, acsys.CS.Clutch)
+
+    # If we have a best lap get the speed at the closest point
+    if session.best_lap:
+        closest_point = session.best_lap.closest_point(point)
+        if closest_point:
+            point.best_speed = closest_point.speed
+
     session.current_lap.points.append(point)
 
 
@@ -131,9 +133,9 @@ def onFormRender(deltaT):
     heading = math.pi - acshm.shm["physics"].memStruct["heading"]["val"]
 
     if session.best_lap:
-        session.best_lap.render(GREEN, session.current_lap, heading)
+        session.best_lap.render(session.current_lap, heading, colors['GREY_30'])
 
-    session.current_lap.render(RED, session.current_lap, heading)
+    session.current_lap.render(session.current_lap, heading)
 
     last_point = session.current_lap.last_point
     if not last_point:
@@ -141,16 +143,15 @@ def onFormRender(deltaT):
     current_speed = session.current_data['current_speed']
     ac.setText(current_speed_label, "{0}".format(round(current_speed, 1)))
 
-    # Get closest point of best lap:
-    if session.best_lap:
-        point = session.best_lap.closest_point(last_point)
-        ac.setText(best_speed_label, "{0}".format(round(point.speed, 1)))
-        if point.speed > current_speed + 1:  # +1 is to avoid flickering
-            ac.setFontColor(current_speed_label, *RED)
-        elif point.speed < current_speed - 1:
-            ac.setFontColor(current_speed_label, *GREEN)
+    # Print the speed of the closest point of the best lap if any
+    if last_point.best_speed is not None:
+        ac.setText(best_speed_label, "{0}".format(round(last_point.speed, 1)))
+        if last_point.speed > current_speed + 1:  # +1 is to avoid flickering
+            ac.setFontColor(current_speed_label, *colors['RED'])
+        elif last_point.speed < current_speed - 1:
+            ac.setFontColor(current_speed_label, *colors['GREEN'])
         else:
-            ac.setFontColor(current_speed_label, *WHITE)
+            ac.setFontColor(current_speed_label, *colors['WHITE'])
 
     session.render_tyres_slip()
 

@@ -18,6 +18,15 @@ import math
 import os
 
 
+# colors:
+colors = {
+    'RED': (1, 0, 0, 1),
+    'GREEN': (0, 1, 0, 1),
+    'WHITE': (0, 1, 0, 1),
+    'GREY_30': (0.3, 0.3, 0.3, 1),
+}
+
+
 class Session(object):
     '''
     Represent a racing sessions, stores laps, etc.
@@ -152,6 +161,8 @@ class Point(object):
         self.gas = g
         self.brake = b
         self.clutch = c
+        self.best_speed = None  # Speed at the closet point
+                                # of the best lap if any
         self.start = False  # Used to start a new line when rendering
         self.end = False    # Used to end a line when rendering
 
@@ -251,18 +262,32 @@ class Lap(object):
 
         return result
 
-    def render(self, color, current_lap, heading):
+    def render(self, current_lap, heading, color=None):
         '''
-        Renders the lap
+        Renders the lap, if no color is given we use green for fast sectors
+        and red for slow sectors, and all green if no best_speed is available
         '''
-        self.session.ac.glColor4f(*color)
         self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
+
         for point in self.normalise(current_lap, heading):
-            if point.end:
-                self.session.ac.glEnd()
             if point.start:
                 self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
+
             self.session.ac.glVertex2f(point.x, point.z)
+
+            if color:
+                self.session.ac.glColor4f(*color)
+            elif point.best_speed is not None:
+                if point.speed < point.best_speed:
+                    self.session.ac.glColor4f(*colors['RED'])
+                else:
+                    self.session.ac.glColor4f(*colors['GREEN'])
+            else:
+                self.session.ac.glColor4f(*colors['GREEN'])
+
+            if point.end:
+                self.session.ac.glEnd()
+
         self.session.ac.glEnd()
 
     def json_dumps(self):
