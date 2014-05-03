@@ -290,11 +290,14 @@ class Lap(object):
         return closest
 
 
-def get_color_from_ratio(ratio, fade_in=False):
+def get_color_from_ratio(ratio, fade_in=False, mode='yr'):
     '''
-    Return a color from green (ratio 0) to red (ratio 1)
+    Return a color based on ratio
     Ratios greater than 1 are considered as 1
-    If fade_in then ratio also affects alpha channel from 0 to 1)
+    If fade_in then ratio also affects alpha channel from 0 to 1
+    Modes:
+        yr: yellow to red
+        gr: green to red
     '''
     if ratio > 1:
         ratio = 1
@@ -302,7 +305,12 @@ def get_color_from_ratio(ratio, fade_in=False):
         alpha = ratio
     else:
         alpha = 1
-    if ratio <= 0.5:
-        return (ratio * 2, 1, 0, alpha)
-    else:
-        return (1, 1 - (ratio - 0.5) * 2, 0, alpha)
+
+    if mode == 'gr':
+        if ratio <= 0.5:
+            return (ratio * 2, 1, 0, alpha)
+        else:
+            return (1, 1 - (ratio - 0.5) * 2, 0, alpha)
+
+    # Default to mode 'yr'
+    return (1, 1 - ratio, 0, alpha)

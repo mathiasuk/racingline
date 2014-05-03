@@ -23,7 +23,7 @@ import math
 acshm = AcSharedMemory(7)
 
 # Data points frequency in seconds
-FREQ = 0.25
+FREQ = 0.125
 
 delta = 0.0  # Time since last data update
 app_size_x = 400
