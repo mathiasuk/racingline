@@ -1,3 +1,5 @@
+# All credit to:
+# http://www.assettocorsa.net/forum/index.php?threads/reading-shared-memory-with-python.3774/
 # v0.11
 # Changes from v0.1:
 # NEW: readValues()
