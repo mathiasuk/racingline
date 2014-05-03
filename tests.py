@@ -92,10 +92,17 @@ class TestSession(unittest.TestCase):
 
 class TestMisc(unittest.TestCase):
     def test_get_color_from_ratio(self):
-        self.assertEqual(get_color_from_ratio(0), (0, 1, 0, 1))
-        self.assertEqual(get_color_from_ratio(0.25), (0.5, 1, 0, 1))
-        self.assertEqual(get_color_from_ratio(0.5), (1, 1, 0, 1))
-        self.assertEqual(get_color_from_ratio(0.75), (1, 0.5, 0, 1))
+        self.assertEqual(get_color_from_ratio(0, mode='gr'), (0, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.25, mode='gr'), (0.5, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.5, mode='gr'), (1, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.75, mode='gr'), (1, 0.5, 0, 1))
+        self.assertEqual(get_color_from_ratio(1, mode='gr'), (1, 0, 0, 1))
+        self.assertEqual(get_color_from_ratio(3.5, mode='gr'), (1, 0, 0, 1))
+
+        self.assertEqual(get_color_from_ratio(0), (1, 1, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.25), (1, 0.75, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.5), (1, 0.5, 0, 1))
+        self.assertEqual(get_color_from_ratio(0.75), (1, 0.25, 0, 1))
         self.assertEqual(get_color_from_ratio(1), (1, 0, 0, 1))
         self.assertEqual(get_color_from_ratio(3.5), (1, 0, 0, 1))
 

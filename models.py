@@ -46,10 +46,6 @@ class Session(object):
         '''
         # Check if current_lap is faster than previous best
         if self.current_lap:
-            self.ac.console('curr lap: %f' % self.current_lap.laptime)
-            if self.best_lap:
-                self.ac.console('Best lap: %f' % self.best_lap.laptime)
-                self.ac.console('curr lap: %f' % self.current_lap.laptime)
             if not self.best_lap or \
                self.current_lap.laptime > 0 and self.current_lap.laptime < self.best_lap.laptime:
                 self.best_lap = self.current_lap
@@ -188,7 +184,7 @@ class Lap(object):
             return self.points[-1]
         except IndexError:
             # This can happen before the first lap is recorded, but also happens
-            # "randomly" at given points on the track... 
+            # "randomly" at given points on the track...
             # so we check if we actually have points.
             # Note that this is a dirty hack and it SHOULDN'T work!
             if self.points:

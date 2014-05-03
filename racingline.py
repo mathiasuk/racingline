@@ -105,15 +105,14 @@ def acUpdate(deltaT):
     session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
     session.current_lap.laptime = ac.getCarState(0, acsys.CS.LapTime)
 
-
     # Save some current data for rendering
     session.current_data['current_speed'] = ac.getCarState(0, acsys.CS.SpeedKMH)
     session.current_data['tyre_radius'] = ac.getCarState(0, acsys.CS.TyreRadius)
     session.current_data['wheel_angular_speed'] = ac.getCarState(0, acsys.CS.WheelAngularSpeed)
     # wheelSlip is currently unused, left here for reference
-    # acshm.readValue("physics", "wheelSlip") 
+    # acshm.readValue("physics", "wheelSlip")
     # session.current_data['wheels_slip'] = [ acshm.shm["physics"].memStruct["wheelSlip"]["val"]
-    
+
     # We only update the rest of the data every FREQ seconds to
     # prevent filling up the memory with data points
     delta += deltaT
