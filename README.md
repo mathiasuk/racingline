@@ -16,7 +16,7 @@ Right now it supports the following features:
 
 ## Roadmap
 
-Future plans include saving the best lap to file so it can be reused in a future session, and actually doing something with the exported data, possibly through a web interface. You can find a [brain dump](wiki/Roadmap) in the wiki.
+Future plans include saving the best lap to file so it can be reused in a future session, and actually doing something with the exported data, possibly through a web interface. You can find a [brain dump](https://github.com/mathiasuk/racingline/wiki/Roadmap) in the wiki.
 
 ## Installation
 
