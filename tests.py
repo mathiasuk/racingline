@@ -97,6 +97,7 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(get_color_from_ratio(0.5), (1, 1, 0, 1))
         self.assertEqual(get_color_from_ratio(0.75), (1, 0.5, 0, 1))
         self.assertEqual(get_color_from_ratio(1), (1, 0, 0, 1))
+        self.assertEqual(get_color_from_ratio(3.5), (1, 0, 0, 1))
 
 
 if __name__ == '__main__':

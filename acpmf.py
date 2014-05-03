@@ -203,7 +203,6 @@ class AcSharedMemory(object):
 				self.shm[key].memStruct[name]["val"] = self.bytesToString(val)
 			else:
 				self.shm[key].memStruct[name]["val"] = val
-		return val
 				
 	def readValues(self,set):
 		for section in set:

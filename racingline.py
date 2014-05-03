@@ -22,8 +22,10 @@ import math
 # Share memory stuff
 acshm = AcSharedMemory(7)
 
-# Time since last data update
-delta = 0.0
+# Data points frequency in seconds
+FREQ = 0.25
+
+delta = 0.0  # Time since last data update
 app_size_x = 400
 app_size_y = 200
 session = None
@@ -93,28 +95,31 @@ def acUpdate(deltaT):
     global delta
     global session
 
-    # Update the status of the current lap
-    session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
-
-    session.current_data['current_speed'] = ac.getCarState(0, acsys.CS.SpeedKMH)
-    session.current_data['tyre_radius'] = ac.getCarState(0, acsys.CS.TyreRadius)
-    session.current_data['wheel_angular_speed'] = ac.getCarState(0, acsys.CS.WheelAngularSpeed)
-
-    # We only update the data every .1 seconds to prevent filling up
-    # the memory with data points
-    delta += deltaT
-    if delta < 0.1:
-        return
-    delta = 0
-
     # Check if we're in a new lap
     lap_count = ac.getCarState(0, acsys.CS.LapCount)
     if lap_count != session.current_lap.count:
-        # Record the previous lap time
-        session.current_lap.laptime = ac.getCarState(0, acsys.CS.LastLap)
-
         # Create a new lap
         session.new_lap(lap_count)
+
+    # Update the status of the current lap
+    session.current_lap.valid = ac.getCarState(0, acsys.CS.LapInvalidated)
+    session.current_lap.laptime = ac.getCarState(0, acsys.CS.LapTime)
+
+
+    # Save some current data for rendering
+    session.current_data['current_speed'] = ac.getCarState(0, acsys.CS.SpeedKMH)
+    session.current_data['tyre_radius'] = ac.getCarState(0, acsys.CS.TyreRadius)
+    session.current_data['wheel_angular_speed'] = ac.getCarState(0, acsys.CS.WheelAngularSpeed)
+    # wheelSlip is currently unused, left here for reference
+    # acshm.readValue("physics", "wheelSlip") 
+    # session.current_data['wheels_slip'] = [ acshm.shm["physics"].memStruct["wheelSlip"]["val"]
+    
+    # We only update the rest of the data every FREQ seconds to
+    # prevent filling up the memory with data points
+    delta += deltaT
+    if delta < FREQ:
+        return
+    delta = 0
 
     # Get the current car's position and add it to current lap
     position = ac.getCarState(0, acsys.CS.WorldPosition)
@@ -130,7 +135,8 @@ def onFormRender(deltaT):
     global session
 
     # Get current heading:
-    heading = math.pi - acshm.readValue("physics", "heading")
+    acshm.readValue("physics", "heading")
+    heading = math.pi - acshm.shm["physics"].memStruct["heading"]["val"]
 
     if session.best_lap:
         session.best_lap.render(GREEN, session.current_lap, heading)
@@ -138,6 +144,8 @@ def onFormRender(deltaT):
     session.current_lap.render(RED, session.current_lap, heading)
 
     last_point = session.current_lap.last_point
+    if not last_point:
+        return
     current_speed = session.current_data['current_speed']
     ac.setText(current_speed_label, "{0}".format(round(current_speed, 1)))
 

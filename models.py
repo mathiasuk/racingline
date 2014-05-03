@@ -46,8 +46,12 @@ class Session(object):
         '''
         # Check if current_lap is faster than previous best
         if self.current_lap:
+            self.ac.console('curr lap: %f' % self.current_lap.laptime)
+            if self.best_lap:
+                self.ac.console('Best lap: %f' % self.best_lap.laptime)
+                self.ac.console('curr lap: %f' % self.current_lap.laptime)
             if not self.best_lap or \
-               self.current_lap.laptime < self.best_lap.laptime:
+               self.current_lap.laptime > 0 and self.current_lap.laptime < self.best_lap.laptime:
                 self.best_lap = self.current_lap
 
         # Save the current lap to file if necessary
@@ -57,7 +61,7 @@ class Session(object):
         # Create new lap
         self.current_lap = Lap(self, count)
 
-    def _get_tyres_slip(self):
+    def _get_wheels_lock(self):
         wheel_angular_speed = self.current_data['wheel_angular_speed']
         tyre_radius = self.current_data['tyre_radius']
         current_speed = self.current_data['current_speed']
@@ -68,10 +72,11 @@ class Session(object):
         for speed, radius in zip(wheel_angular_speed, tyre_radius):
             wheel_speed.append(speed * radius * 3600 / 1000)
 
-        # Calculate the locking ratio:
+        # Calculate the locking ratio
         if current_speed > 1:
             lock_ratios = [1 - w / current_speed for w in wheel_speed]
         else:
+            # The car is stopped, we ignore wheel lock
             lock_ratios = [0 for w in wheel_speed]
 
         return lock_ratios
@@ -81,15 +86,15 @@ class Session(object):
         Render the tyres slip widget
         '''
         # Get the tyres slip ratio
-        lock_ratios = self._get_tyres_slip()
+        lock_ratios = self._get_wheels_lock()
 
-        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[0]))
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[0], fade_in=True))
         self.ac.glQuad(380, 30, 5, 10)
-        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[1]))
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[1], fade_in=True))
         self.ac.glQuad(390, 30, 5, 10)
-        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[2]))
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[2], fade_in=True))
         self.ac.glQuad(380, 50, 5, 10)
-        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[3]))
+        self.ac.glColor4f(*get_color_from_ratio(lock_ratios[3], fade_in=True))
         self.ac.glQuad(390, 50, 5, 10)
 
     def json_dumps(self):
@@ -179,9 +184,15 @@ class Lap(object):
         '''
         Returns the last point from the lap
         '''
-        if self.points:
+        try:
             return self.points[-1]
-        else:
+        except IndexError:
+            # This can happen before the first lap is recorded, but also happens
+            # "randomly" at given points on the track... 
+            # so we check if we actually have points.
+            # Note that this is a dirty hack and it SHOULDN'T work!
+            if self.points:
+                return self.points[-1]
             return None
 
     def normalise(self, current_lap, heading):
@@ -279,11 +290,19 @@ class Lap(object):
         return closest
 
 
-def get_color_from_ratio(ratio):
+def get_color_from_ratio(ratio, fade_in=False):
     '''
     Return a color from green (ratio 0) to red (ratio 1)
+    Ratios greater than 1 are considered as 1
+    If fade_in then ratio also affects alpha channel from 0 to 1)
     '''
-    if ratio <= 0.5:
-        return (ratio * 2, 1, 0, 1)
+    if ratio > 1:
+        ratio = 1
+    if fade_in:
+        alpha = ratio
     else:
-        return (1, 1 - (ratio - 0.5) * 2, 0, 1)
+        alpha = 1
+    if ratio <= 0.5:
+        return (ratio * 2, 1, 0, alpha)
+    else:
+        return (1, 1 - (ratio - 0.5) * 2, 0, alpha)
