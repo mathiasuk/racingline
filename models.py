@@ -16,6 +16,7 @@ from datetime import datetime
 import json
 import math
 import os
+import sys
 
 
 # colors:
@@ -55,7 +56,7 @@ class Session(object):
         if self.ac:
             self.ac.console(msg)
         else:
-            print '%s' % msg
+            sys.stdout.write('%s\n' % msg)
 
     def new_lap(self, count):
         '''
