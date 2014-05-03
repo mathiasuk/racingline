@@ -29,7 +29,7 @@ for the plugin to be recognised by Assetto Corsa
 
 To quote the GPL: *This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.*
 
-So yeah, it might make a mess in your kitchen, drink your beer and still your wife. Bust most likely it will just work and if something goes wrong it will crash.
+So yeah, it might make a mess in your kitchen, drink your beer and still your wife. But most likely it will just work and if something goes wrong it might crash.
 In any case feel free to [submit bug report or suggestions](https://github.com/mathiasuk/racingline/issues).
 
 Have fun!
