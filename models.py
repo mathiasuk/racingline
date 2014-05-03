@@ -39,6 +39,15 @@ class Session(object):
         self.start_time = datetime.now()
         self.current_data = {}
 
+    def console(self, msg):
+        '''
+        Prints to AC console if available or to terminal if in test mode
+        '''
+        if self.ac:
+            self.ac.console(msg)
+        else:
+            print '%s' % msg
+
     def new_lap(self, count):
         '''
         Create a new lap, save best lap if previous lap was faster
@@ -128,8 +137,8 @@ class Session(object):
         f.write(self.current_lap.json_dumps() + '\n')
         f.close()
 
-        self.ac.console('Saved lap %d to file %s.' % (self.current_lap.count,
-                                                      filename))
+        self.console('Saved lap %d to file %s.' % (self.current_lap.count,
+                                                   filename))
 
         return os.path.join(target_dir, filename)
 

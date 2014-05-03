@@ -39,13 +39,6 @@ GREEN = (0, 1, 0, 1)
 WHITE = (0, 1, 0, 1)
 
 
-def log_error(msg):
-    '''
-    Print an error in the console
-    '''
-    ac.console('ERROR(racingline): %s')
-
-
 def acMain(ac_version):
     global session, current_speed_label, best_speed_label, save_checkbox
 
@@ -168,4 +161,4 @@ def save_checkbox_callback(name, state):
         session.save_data = True
     else:
         session.save_data = False
-    ac.console('** %s' % session.save_data)
+    session.console('** %s' % session.save_data)
