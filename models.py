@@ -178,10 +178,10 @@ class Point(object):
         Returns a dict representation of the Point that can be passed to JSON
         '''
         return {
-            'x': self.x,
-            'y': self.y,
-            'z': self.z,
-            's': self.speed,
+            'x': round(self.x, 2),
+            'y': round(self.y, 2),
+            'z': round(self.z, 2),
+            's': round(self.speed, 2),
             'g': self.gas,
             'b': self.brake,
             'c': self.clutch,
