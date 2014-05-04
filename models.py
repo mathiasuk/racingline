@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Copyright (C) 2014 - Mathias Andre
 
-from racingline import FREQ
+from acpmf import AcSharedMemory
 
 from datetime import datetime
 import json
@@ -20,15 +20,12 @@ import math
 import os
 import sys
 
-
 # colors:
-colors = {
-    'RED': (1, 0, 0, 1),
-    'GREEN': (0, 1, 0, 1),
-    'WHITE': (0, 1, 0, 1),
-    'GREY_30': (0.3, 0.3, 0.3, 1),
-    'GREY_60': (0.6, 0.6, 0.6, 1),
-}
+RED = (1, 0, 0, 1),
+GREEN = (0, 1, 0, 1),
+WHITE = (0, 1, 0, 1),
+GREY_30 = (0.3, 0.3, 0.3, 1),
+GREY_60 = (0.6, 0.6, 0.6, 1),
 
 
 class Session(object):
@@ -52,6 +49,12 @@ class Session(object):
         self.start_time = datetime.now()
         self.current_data = {}
         self.delta = 0.0  # Time since last data update
+        self.freq = 0.5
+
+        # Labels
+        self.current_speed_label = None
+        self.best_speed_label = None
+        self.save_checkbox = None
 
     def console(self, msg):
         '''
@@ -109,28 +112,30 @@ class Session(object):
         if lap_count != self.current_lap.count:
             # Create a new lap
             self.new_lap(lap_count)
-    
+
         # Update the status of the current lap
         self.current_lap.valid = self.ac.getCarState(0, self.acsys.CS.LapInvalidated)
         self.current_lap.laptime = self.ac.getCarState(0, self.acsys.CS.LapTime)
-    
+
         # Save some current data for rendering
         self.current_data['current_speed'] = self.ac.getCarState(0, self.acsys.CS.SpeedKMH)
         self.current_data['tyre_radius'] = self.ac.getCarState(0, self.acsys.CS.TyreRadius)
         self.current_data['wheel_angular_speed'] = self.ac.getCarState(0, self.acsys.CS.WheelAngularSpeed)
+
+        acshm = AcSharedMemory(7)
         acshm.readValue("physics", "heading")
         self.current_data['heading'] = math.pi - acshm.shm["physics"].memStruct["heading"]["val"]
         # wheelSlip is currently unused, left here for reference
         # acshm.readValue("physics", "wheelSlip")
         # self.current_data['wheels_slip'] = [ acshm.shm["physics"].memStruct["wheelSlip"]["val"]
-    
+
         # We only update the rest of the data every FREQ seconds to
         # prevent filling up the memory with data points
         self.delta += deltaT
-        if self.delta < FREQ:
+        if self.delta < self.freq:
             return
         self.delta = 0
-    
+
         # Get the current car's position and add it to current lap
         position = self.ac.getCarState(0, self.acsys.CS.WorldPosition)
         point = Point(*position)
@@ -138,13 +143,13 @@ class Session(object):
         point.gas = self.ac.getCarState(0, self.acsys.CS.Gas)
         point.brake = self.ac.getCarState(0, self.acsys.CS.Brake)
         point.clutch = self.ac.getCarState(0, self.acsys.CS.Clutch)
-    
+
         # If we have a best lap get the speed at the closest point
         if self.best_lap:
             closest_point = self.best_lap.closest_point(point)
             if closest_point:
                 point.best_speed = closest_point.speed
-    
+
         self.current_lap.points.append(point)
 
     def render_tyres_slip(self):
@@ -167,29 +172,29 @@ class Session(object):
         '''
         Renders the widget
         '''
-        heading = session.current_data['heading']
-    
+        heading = self.current_data['heading']
+
         if self.best_lap:
-            self.best_lap.render(self.current_lap, heading, colors['GREY_60'])
-    
+            self.best_lap.render(self.current_lap, heading, GREY_60)
+
         self.current_lap.render(self.current_lap, heading)
-    
+
         last_point = self.current_lap.last_point
         if not last_point:
             return
         current_speed = self.current_data['current_speed']
-        ac.setText(current_speed_label, "{0}".format(round(current_speed, 1)))
-    
+        self.ac.setText(self.current_speed_label, "{0}".format(round(current_speed, 1)))
+
         # Print the speed of the closest point of the best lap if any
         if last_point.best_speed is not None:
-            ac.setText(best_speed_label, "{0}".format(round(last_point.best_speed, 1)))
+            self.ac.setText(self.best_speed_label, "{0}".format(round(last_point.best_speed, 1)))
             if last_point.best_speed > current_speed + 1:  # +1 is to avoid flickering
-                ac.setFontColor(current_speed_label, *colors['RED'])
+                self.ac.setFontColor(self.current_speed_label, *RED)
             elif last_point.best_speed < current_speed - 1:
-                ac.setFontColor(current_speed_label, *colors['GREEN'])
+                self.ac.setFontColor(self.current_speed_label, *GREEN)
             else:
-                ac.setFontColor(current_speed_label, *colors['WHITE'])
-    
+                self.ac.setFontColor(self.current_speed_label, *WHITE)
+
         self.render_tyres_slip()
 
     def json_dumps(self):
@@ -362,11 +367,11 @@ class Lap(object):
                 self.session.ac.glColor4f(*color)
             elif point.best_speed is not None:
                 if point.speed < point.best_speed:
-                    self.session.ac.glColor4f(*colors['RED'])
+                    self.session.ac.glColor4f(*RED)
                 else:
-                    self.session.ac.glColor4f(*colors['GREEN'])
+                    self.session.ac.glColor4f(*GREEN)
             else:
-                self.session.ac.glColor4f(*colors['GREEN'])
+                self.session.ac.glColor4f(*GREEN)
 
             if point.end:
                 self.session.ac.glEnd()

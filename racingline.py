@@ -12,15 +12,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Copyright (C) 2014 - Mathias Andre
 
-from models import Session, Point, colors
-from acpmf import AcSharedMemory
+from models import Session
 
 import ac
 import acsys
-import math
-
-# Share memory stuff
-acshm = AcSharedMemory(7)
 
 # Data points frequency in seconds
 FREQ = 0.125
@@ -28,13 +23,18 @@ FREQ = 0.125
 app_size_x = 400
 app_size_y = 200
 session = None
-current_speed_label = None
-best_speed_label = None
-save_checkbox = None
 
 
 def acMain(ac_version):
-    global session, current_speed_label, best_speed_label, save_checkbox
+    global session
+
+    # Create session object
+    session = Session(ac, acsys)
+    session.app_size_x = app_size_x
+    session.app_size_y = app_size_y
+    session.freq = FREQ
+    session.trackname = ac.getTrackName(0)
+    session.carname = ac.getCarName(0)
 
     # Create App Widget
     appWindow = ac.newApp('Racing Line')
@@ -53,26 +53,20 @@ def acMain(ac_version):
     label = ac.addLabel(appWindow, 'Best speed')
     ac.setText(label, 'Best')
     ac.setPosition(label, 10, 50)
-    current_speed_label = ac.addLabel(appWindow, 'Best speed value')
-    ac.setText(current_speed_label, '')
-    ac.setPosition(current_speed_label, 60, 30)
-    best_speed_label = ac.addLabel(appWindow, 'Best speed value')
-    ac.setText(best_speed_label, '')
-    ac.setPosition(best_speed_label, 60, 50)
+    session.current_speed_label = ac.addLabel(appWindow, 'Best speed value')
+    ac.setText(session.current_speed_label, '')
+    ac.setPosition(session.current_speed_label, 60, 30)
+    session.best_speed_label = ac.addLabel(appWindow, 'Best speed value')
+    ac.setText(session.best_speed_label, '')
+    ac.setPosition(session.best_speed_label, 60, 50)
 
     # Create checkbox
-    save_checkbox = ac.addCheckBox(appWindow, 'Export data')
-    ac.setSize(save_checkbox, 10, 10)
-    ac.setPosition(save_checkbox, 10, 180)
-    ac.addOnCheckBoxChanged(save_checkbox, save_checkbox_callback)
+    session.save_checkbox = ac.addCheckBox(appWindow, 'Export data')
+    ac.setSize(session.save_checkbox, 10, 10)
+    ac.setPosition(session.save_checkbox, 10, 180)
+    ac.addOnCheckBoxChanged(session.save_checkbox, save_checkbox_callback)
 
-    # Create session object
-    session = Session(ac, acsys)
-    session.app_size_x = app_size_x
-    session.app_size_y = app_size_y
-    session.trackname = ac.getTrackName(0)
-    session.carname = ac.getCarName(0)
-
+    # Create first lap
     session.new_lap(ac.getCarState(0, acsys.CS.LapCount))
 
     return "Racing Line"
