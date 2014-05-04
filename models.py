@@ -25,6 +25,7 @@ colors = {
     'GREEN': (0, 1, 0, 1),
     'WHITE': (0, 1, 0, 1),
     'GREY_30': (0.3, 0.3, 0.3, 1),
+    'GREY_60': (0.6, 0.6, 0.6, 1),
 }
 
 
@@ -254,12 +255,14 @@ class Lap(object):
                     result[-1].end = True
                 continue
 
-            point = Point(x, y, z)
+            p = Point(x, y, z)
+            p.speed = point.speed
+            p.best_speed = point.best_speed
             if out:
-                point.start = True
+                p.start = True
                 out = False
 
-            result.append(point)
+            result.append(p)
 
         return result
 

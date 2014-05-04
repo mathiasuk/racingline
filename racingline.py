@@ -133,7 +133,7 @@ def onFormRender(deltaT):
     heading = math.pi - acshm.shm["physics"].memStruct["heading"]["val"]
 
     if session.best_lap:
-        session.best_lap.render(session.current_lap, heading, colors['GREY_30'])
+        session.best_lap.render(session.current_lap, heading, colors['GREY_60'])
 
     session.current_lap.render(session.current_lap, heading)
 
@@ -145,10 +145,10 @@ def onFormRender(deltaT):
 
     # Print the speed of the closest point of the best lap if any
     if last_point.best_speed is not None:
-        ac.setText(best_speed_label, "{0}".format(round(last_point.speed, 1)))
-        if last_point.speed > current_speed + 1:  # +1 is to avoid flickering
+        ac.setText(best_speed_label, "{0}".format(round(last_point.best_speed, 1)))
+        if last_point.best_speed > current_speed + 1:  # +1 is to avoid flickering
             ac.setFontColor(current_speed_label, *colors['RED'])
-        elif last_point.speed < current_speed - 1:
+        elif last_point.best_speed < current_speed - 1:
             ac.setFontColor(current_speed_label, *colors['GREEN'])
         else:
             ac.setFontColor(current_speed_label, *colors['WHITE'])
