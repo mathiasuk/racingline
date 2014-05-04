@@ -21,11 +21,11 @@ import os
 import sys
 
 # colors:
-RED = (1, 0, 0, 1),
-GREEN = (0, 1, 0, 1),
-WHITE = (0, 1, 0, 1),
-GREY_30 = (0.3, 0.3, 0.3, 1),
-GREY_60 = (0.6, 0.6, 0.6, 1),
+RED = (1, 0, 0, 1)
+GREEN = (0, 1, 0, 1)
+WHITE = (0, 1, 0, 1)
+GREY_30 = (0.3, 0.3, 0.3, 1)
+GREY_60 = (0.6, 0.6, 0.6, 1)
 
 
 class Session(object):
