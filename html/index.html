@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <script src="Snap.svg-0.2.0/dist/snap.svg.js"></script>
+    <script src="racingline.js"></script>
+<body>
+
+<svg id="svg" style="width: 1024px; height: 768px;"></svg>
+
+
+<script>
+var s = Snap("#svg");
+
+var lap = new Lap(json);
+
+var background = s.rect(0, 0, 1024, 768).attr({fill: '#eee'});
+
+var path = s.path(lap.toSvgPath()).attr({fill: 'none', stroke: '#000000', strokeWidth: 3});
+
+var box = path.getBBox();
+var scale_x = (document.getElementById('svg').offsetWidth - 20) / box.width;
+var scale_y = (document.getElementById('svg').offsetHeight - 20) / box.height;
+
+var myMatrix = new Snap.Matrix();
+
+if (scale_x < scale_y)
+    myMatrix.scale(scale_x, scale_x);
+else
+    myMatrix.scale(scale_y, scale_y);
+
+path.attr({transform: myMatrix});
+
+group = s.g(background, path);
+group.drag();
+
+function zoomin() {
+    myMatrix.scale(1.2, 1.2);
+    path.attr({transform: myMatrix});
+}
+
+function zoomout() {
+    myMatrix.scale(0.8, 0.8);
+    path.attr({transform: myMatrix});
+}
+
+
+</script>
+
+</body>
+</html>
