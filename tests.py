@@ -51,7 +51,7 @@ class TestLap(unittest.TestCase):
     def test_json_dumps(self):
         result = json.loads(self.lap.json_dumps())
         self.assertEqual(result['count'], self.lap.count)
-        self.assertEqual(result['valid'], self.lap.valid)
+        self.assertEqual(result['invalid'], self.lap.invalid)
         self.assertEqual(result['laptime'], self.lap.laptime)
         for i, point in enumerate(result['points']):
             point = Point(**point)

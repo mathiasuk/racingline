@@ -50,6 +50,7 @@ class Session(object):
         self.current_data = {}
         self.delta = 0.0  # Time since last data update
         self.freq = 0.5
+        self.laps = []  # This is only used when running outside of AC
 
         # Labels
         self.current_speed_label = None
@@ -114,7 +115,7 @@ class Session(object):
             self.new_lap(lap_count)
 
         # Update the status of the current lap
-        self.current_lap.valid = self.ac.getCarState(0, self.acsys.CS.LapInvalidated)
+        self.current_lap.invalid = self.ac.getCarState(0, self.acsys.CS.LapInvalidated)
         self.current_lap.laptime = self.ac.getCarState(0, self.acsys.CS.LapTime)
 
         # Save some current data for rendering
@@ -143,6 +144,7 @@ class Session(object):
         point.gas = self.ac.getCarState(0, self.acsys.CS.Gas)
         point.brake = self.ac.getCarState(0, self.acsys.CS.Brake)
         point.clutch = self.ac.getCarState(0, self.acsys.CS.Clutch)
+        point.gear = self.ac.getCarState(0, self.acsys.CS.Gear)
 
         # If we have a best lap get the speed at the closest point
         if self.best_lap:
@@ -237,9 +239,31 @@ class Session(object):
 
         return os.path.join(target_dir, filename)
 
+    def import_data(self, filename):
+        '''
+        Import a session from file. This is not meant to be called in AC
+        '''
+        try:
+            f = open(filename)
+        except Exception as e:
+            self.console('Can\'t open file "%s": %s' % (filename, e))
+
+        # Read session_data
+        data = f.readline()
+        data = json.loads(data)
+        for key, value in data.items():
+            setattr(self, key, value)
+
+        # Read laps data
+        for i, line in enumerate(f):
+            lap = Lap(self, i)
+            data = json.loads(line)
+            lap.json_loads(data)
+            self.laps.append(lap)
+
 
 class Point(object):
-    def __init__(self, x, y, z, s=0, g=0, b=0, c=0):
+    def __init__(self, x, y, z, s=0, g=0, b=0, c=0, r=0):
         self.x = x
         self.y = y
         self.z = z
@@ -247,10 +271,14 @@ class Point(object):
         self.gas = g
         self.brake = b
         self.clutch = c
+        self.gear = r
         self.best_speed = None  # Speed at the closet point
                                 # of the best lap if any
         self.start = False  # Used to start a new line when rendering
         self.end = False    # Used to end a line when rendering
+
+    def __repr__(self):
+        return 'x: %f, z: %f' % (self.x, self.z)
 
     def equal_coords(self, point):
         '''
@@ -270,6 +298,7 @@ class Point(object):
             'g': self.gas,
             'b': self.brake,
             'c': self.clutch,
+            'r': self.gear,
         }
 
 
@@ -278,8 +307,20 @@ class Lap(object):
         self.session = session  # Reference to the current session
         self.count = count
         self.points = []
-        self.valid = 1
+        self.invalid = 0
         self.laptime = 0
+
+    def human_laptime(self):
+        '''
+        Returns the laptime under the format: m:s.ms
+        '''
+        s, ms = divmod(self.laptime, 1000)
+        m, s = divmod(s, 60)
+        return '%d:%d:%d' % (m, s, ms)
+
+    def __repr__(self):
+        return '%d: %s%s' % (self.count, self.human_laptime(),
+                             '*' if self.invalid else '')
 
     @property
     def last_point(self):
@@ -384,10 +425,54 @@ class Lap(object):
         '''
         return json.dumps({
             'count': self.count,
-            'valid': self.valid,
+            'invalid': self.invalid,
             'laptime': self.laptime,
             'points': [point.dumps() for point in self.points],
         })
+
+    def json_loads(self, data):
+        '''
+        Update the lap with the given JSON data
+        '''
+        self.invalid = data['invalid']
+        self.laptime = data['laptime']
+        for point_data in data['points']:
+            point = Point(**point_data)
+            self.points.append(point)
+
+    def svg_path(self):
+        '''
+        Returns a SVG path version of the current lap points
+        '''
+        path = 'M %f,%f' % (self.points[0].x, self.points[0].z)
+
+        for point in self.points:
+            path += ' L %f,%f' % (point.x, point.z)
+
+        return path
+
+    def write_svg(self, filename):
+        '''
+        Write a SVG path of the current lap to filename
+        '''
+        data = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 140" class="racing-line">
+    <title>%s</title>
+
+    <path d="%s"
+            stroke="#000000"
+            fill="none"
+            class="racing-line-lap" />
+</svg>
+''' % (self.human_laptime(), self.svg_path())
+
+        try:
+            f = open(filename, 'w')
+        except Exception as e:
+            self.console('Can\'t open file "%s": %s' % (filename, e))
+
+        f.write(data)
+        f.close()
 
     def closest_point(self, ref_point):
         '''
