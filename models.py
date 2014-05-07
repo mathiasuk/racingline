@@ -264,10 +264,10 @@ class Session(object):
 
 class Point(object):
     def __init__(self, x, y, z, s=0, g=0, b=0, c=0, r=0):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.speed = s      # Speed in Km/h
+        self.x = round(x, 2)
+        self.y = round(y, 2)
+        self.z = round(z, 2)
+        self.speed = round(s, 2)      # Speed in Km/h
         self.gas = g
         self.brake = b
         self.clutch = c
@@ -286,20 +286,29 @@ class Point(object):
         '''
         return self.x == point.x and self.y == point.y and self.z == point.z
 
-    def dumps(self):
+    def dumps(self, previous=None):
         '''
         Returns a dict representation of the Point that can be passed to JSON
+        If 'previous' is given only dump the data which has changed since
         '''
-        return {
-            'x': round(self.x, 2),
-            'y': round(self.y, 2),
-            'z': round(self.z, 2),
-            's': round(self.speed, 2),
-            'g': self.gas,
-            'b': self.brake,
-            'c': self.clutch,
-            'r': self.gear,
-        }
+        result = {}
+        keys = (
+            ('x', 'x'),
+            ('y', 'y'),
+            ('z', 'z'),
+            ('speed', 's'),
+            ('gas', 'g'),
+            ('brake', 'b'),
+            ('clutch', 'c'),
+            ('gear', 'r'),
+        )
+
+        for key, shortname in keys:
+            if not previous or \
+               (previous and getattr(previous, key) != getattr(self, key)):
+                result[shortname] = getattr(self, key)
+
+        return result
 
 
 class Lap(object):
@@ -423,11 +432,20 @@ class Lap(object):
         '''
         Returns a JSON representation of the Lap
         '''
+        points = []
+        for i, point in enumerate(points):
+            # We check if we have a previous point to only dump
+            # the data which has changed
+            if i > 0:
+                points.append(point.dumps(points[i - 1]))
+            else:
+                points.append(point.dumps())
+
         return json.dumps({
             'count': self.count,
             'invalid': self.invalid,
             'laptime': self.laptime,
-            'points': [point.dumps() for point in self.points],
+            'points': points,
         })
 
     def json_loads(self, data):
@@ -438,9 +456,13 @@ class Lap(object):
             self.invalid = data['invalid']
         if 'laptime' in data:
             self.laptime = data['laptime']
+
+        previous = None  # TODO
         for point_data in data['points']:
+            # TODO: reuse data from previous point if necessary
             point = Point(**point_data)
             self.points.append(point)
+            previous = point  # TODO
 
     def svg_path(self):
         '''
