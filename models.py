@@ -434,8 +434,10 @@ class Lap(object):
         '''
         Update the lap with the given JSON data
         '''
-        self.invalid = data['invalid']
-        self.laptime = data['laptime']
+        if 'invalid' in data:
+            self.invalid = data['invalid']
+        if 'laptime' in data:
+            self.laptime = data['laptime']
         for point_data in data['points']:
             point = Point(**point_data)
             self.points.append(point)
