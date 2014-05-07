@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Racingline by mathiasuk</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/mathiasuk/racingline">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/mathiasuk/racingline/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/mathiasuk/racingline/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Racingline</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/mathiasuk">mathiasuk</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="racing-line" class="anchor" href="#racing-line"><span class="octicon octicon-link"></span></a>Racing Line</h1>
+
+<p>Racing Line is a simple plugin for Assetto Corsa, it traces the racing line of
+the current lap and best lap so you can compare trajectories, etc.</p>
+
+<h2>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h2>
+
+<p>Right now it supports the following features:</p>
+
+<ul>
+<li>Trace the best lap racing line in grey, and the current racing line: segments faster than the best lap are green, and segments slower are in red</li>
+<li>Display the current speed and the speed at the same point of the track in the best lap</li>
+<li>Widget to show if any of the wheels are locked (top right corner)</li>
+<li>Dump all lap data to <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> file in an <em>exports</em> folder where the plugin is installed. This is relatively untested, so beware. Lap data is stored uncompressed for now, so be careful: the dump files can grow pretty large!</li>
+</ul><p><img src="/data/racingline-screenshot.jpg?raw=true" alt="Screenshot"></p>
+
+<h2>
+<a name="roadmap" class="anchor" href="#roadmap"><span class="octicon octicon-link"></span></a>Roadmap</h2>
+
+<p>Future plans include saving the best lap to file so it can be reused in a future session, and actually doing something with the exported data, possibly through a web interface. You can find a <a href="https://github.com/mathiasuk/racingline/wiki/Roadmap">brain dump</a> in the wiki.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>For now simply download the <a href="https://github.com/mathiasuk/racingline/archive/v0.1.0.zip">latest zip release</a> and unzip it in:</p>
+
+<p><em>Your steam folder</em>\steamapps\common\assettocorsa\apps\python</p>
+
+<p>You will also need to rename the <strong>racingline-master-0.1.0</strong> folder to <strong>racingline</strong>
+for the plugin to be recognised by Assetto Corsa</p>
+
+<p>To quote the GPL: <em>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</em></p>
+
+<p>So yeah, it might make a mess in your kitchen, drink your beer and still your wife. But most likely it will just work and if something goes wrong it might crash.
+In any case feel free to <a href="https://github.com/mathiasuk/racingline/issues">submit bug report or suggestions</a>.</p>
+
+<p>Have fun!</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
