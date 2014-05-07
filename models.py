@@ -277,6 +277,18 @@ class Point(object):
         self.start = False  # Used to start a new line when rendering
         self.end = False    # Used to end a line when rendering
 
+        # List of attributes, and their JSON keys
+        self.keys = (
+            ('x', 'x'),
+            ('y', 'y'),
+            ('z', 'z'),
+            ('speed', 's'),
+            ('gas', 'g'),
+            ('brake', 'b'),
+            ('clutch', 'c'),
+            ('gear', 'r'),
+        )
+
     def __repr__(self):
         return 'x: %f, z: %f' % (self.x, self.z)
 
@@ -292,18 +304,7 @@ class Point(object):
         If 'previous' is given only dump the data which has changed since
         '''
         result = {}
-        keys = (
-            ('x', 'x'),
-            ('y', 'y'),
-            ('z', 'z'),
-            ('speed', 's'),
-            ('gas', 'g'),
-            ('brake', 'b'),
-            ('clutch', 'c'),
-            ('gear', 'r'),
-        )
-
-        for key, shortname in keys:
+        for key, shortname in self.keys:
             if not previous or \
                (previous and getattr(previous, key) != getattr(self, key)):
                 result[shortname] = getattr(self, key)
@@ -433,11 +434,11 @@ class Lap(object):
         Returns a JSON representation of the Lap
         '''
         points = []
-        for i, point in enumerate(points):
+        for i, point in enumerate(self.points):
             # We check if we have a previous point to only dump
             # the data which has changed
             if i > 0:
-                points.append(point.dumps(points[i - 1]))
+                points.append(point.dumps(self.points[i - 1]))
             else:
                 points.append(point.dumps())
 
@@ -457,12 +458,16 @@ class Lap(object):
         if 'laptime' in data:
             self.laptime = data['laptime']
 
-        previous = None  # TODO
+        previous = {}
         for point_data in data['points']:
-            # TODO: reuse data from previous point if necessary
-            point = Point(**point_data)
+
+            # Update the previous point_data with the current one, updated
+            # data will overwrite the old one, data which hasn't changed
+            # will be kept
+            previous.update(point_data)
+
+            point = Point(**previous)
             self.points.append(point)
-            previous = point  # TODO
 
     def svg_path(self):
         '''

@@ -49,13 +49,15 @@ class TestLap(unittest.TestCase):
         self.assertTrue(result[3].equal_coords(Point(200, 0, 100)))
 
     def test_json_dumps(self):
-        result = json.loads(self.lap.json_dumps())
-        self.assertEqual(result['count'], self.lap.count)
-        self.assertEqual(result['invalid'], self.lap.invalid)
-        self.assertEqual(result['laptime'], self.lap.laptime)
-        for i, point in enumerate(result['points']):
-            point = Point(**point)
-            self.assertTrue(point.equal_coords(self.lap.points[i]))
+        session = Session()
+        lap = Lap(session, 0)
+        lap.json_loads(json.loads(self.lap.json_dumps()))
+        self.assertEqual(lap.count, self.lap.count)
+        self.assertEqual(lap.count, self.lap.invalid)
+        self.assertEqual(lap.count, self.lap.laptime)
+        for p1, p2 in zip(lap.points, self.lap.points):
+            for key, dummy in p2.keys:
+                self.assertEqual(getattr(p1, key), getattr(p2, key))
 
     def test_closest_point(self):
         point = Point(14, 0, 13)
