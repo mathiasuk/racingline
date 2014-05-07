@@ -36,6 +36,9 @@ def acMain(ac_version):
     session.trackname = ac.getTrackName(0)
     session.carname = ac.getCarName(0)
 
+    # Load best lap time if it exists for current track and car
+    session.load_best_lap()
+
     # Create App Widget
     appWindow = ac.newApp('Racing Line')
     ac.setSize(appWindow, app_size_x, app_size_y)

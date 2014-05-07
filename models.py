@@ -57,6 +57,35 @@ class Session(object):
         self.best_speed_label = None
         self.save_checkbox = None
 
+    def _best_lap_path(self):
+        '''
+        Returns the path to the best lap JSON file
+        '''
+        if not (self.trackname and self.carname):
+            return None
+
+        return os.path.join('best-laps', self.trackname, '%s.json' % self.carname)
+
+    def load_best_lap(self):
+        '''
+        Checks if a best lap for the current track/car exists and loads it
+        '''
+        path = self._best_lap_path()
+
+        if not os.path.exists(path):
+            return
+
+        try:
+            f = open(path)
+        except Exception as e:
+            self.console('Can\'t open file "%s": %s' % (path, e))
+            return
+
+        self.best_lap = Lap(self, 0)
+        data = json.loads(f.read())
+        self.best_lap.json_loads(data)
+        f.close()
+
     def console(self, msg):
         '''
         Prints to AC console if available or to terminal if in test mode
@@ -65,6 +94,22 @@ class Session(object):
             self.ac.console(msg)
         else:
             sys.stdout.write('%s\n' % msg)
+
+    def new_best_lap(self):
+        '''
+        Save the current lap as new best lap
+        '''
+        self.best_lap = self.current_lap
+
+        path = self._best_lap_path()
+        try:
+            f = open(path, 'w')
+        except Exception as e:
+            self.console('Can\'t open file "%s" for writing: %s' % (path, e))
+            return
+
+        f.write(self.best_lap.json_dumps() + '\n')
+        f.close()
 
     def new_lap(self, count):
         '''
@@ -75,7 +120,7 @@ class Session(object):
         if self.current_lap:
             if not self.best_lap or \
                self.current_lap.laptime > 0 and self.current_lap.laptime < self.best_lap.laptime:
-                self.best_lap = self.current_lap
+                self.new_best_lap()
 
         # Save the current lap to file if necessary
         if self.save_data:
@@ -223,7 +268,11 @@ class Session(object):
         filename = '%s-%s-%s.json' % (self.start_time.strftime('%Y-%m-%d-%H-%M-%S'),
                                       self.trackname, self.carname)
 
-        f = open(os.path.join(target_dir, filename), 'a')
+        try:
+            f = open(os.path.join(target_dir, filename), 'a')
+        except Exception as e:
+            self.console('Can\'t open file "%s" for writing: %s' % (filename, e))
+            return
 
         # Check the position in the file, if we're at 0 then the file
         # is new and write the session headers
@@ -237,8 +286,6 @@ class Session(object):
         self.console('Saved lap %d to file %s.' % (self.current_lap.count,
                                                    filename))
 
-        return os.path.join(target_dir, filename)
-
     def import_data(self, filename):
         '''
         Import a session from file. This is not meant to be called in AC
@@ -247,6 +294,7 @@ class Session(object):
             f = open(filename)
         except Exception as e:
             self.console('Can\'t open file "%s": %s' % (filename, e))
+            return
 
         # Read session_data
         data = f.readline()
