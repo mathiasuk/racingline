@@ -60,12 +60,13 @@ class Session(object):
     def _best_lap_path(self):
         '''
         Returns the path to the best lap JSON file
-	Create the best lap directory if it doesn't already exists
+        Create the best lap directory if it doesn't already exists
         '''
         if not (self.trackname and self.carname):
             return None
 
-        dirpath = os.path.join('best-laps', self.trackname)
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        dirpath = os.path.join(current_dir, 'best-laps', self.trackname)
         try:
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
