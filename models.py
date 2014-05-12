@@ -145,13 +145,11 @@ class Session(object):
     def _get_wheels_lock(self):
         wheel_angular_speed = self.current_data['wheel_angular_speed']
         tyre_radius = self.current_data['tyre_radius']
-        current_speed = self.current_data['current_speed']
+        current_speed = abs(self.current_data['current_speed'])
 
         # Calculate the wheel speed:
         # Angular_speed (radians) * radius = m/s converted to km/h
-        wheel_speed = []
-        for speed, radius in zip(wheel_angular_speed, tyre_radius):
-            wheel_speed.append(speed * radius * 3600 / 1000)
+        wheel_speed = [abs(speed) * radius * 3600 / 1000 for speed, radius in zip(wheel_angular_speed, tyre_radius)]
 
         # Calculate the locking ratio
         if current_speed > 1:
