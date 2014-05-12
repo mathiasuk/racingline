@@ -129,11 +129,25 @@ class Session(object):
         Create a new lap, save best lap if previous lap was faster
         than current best
         '''
+        def is_best_lap(new, best):
+            '''
+            Returns True if 'new' lap is faster than 'best'
+            '''
+            if not new:
+                return False
+            if not best:
+                return True
+            if best.invalid and not new.invalid:
+                return True
+            if not best.invalid and new.invalid:
+                return False
+            if new.laptime < best.laptime:
+                return True
+            return False
+
         # Check if current_lap is faster than previous best
-        if self.current_lap:
-            if not self.best_lap or \
-               self.current_lap.laptime > 0 and self.current_lap.laptime < self.best_lap.laptime:
-                self.new_best_lap()
+        if is_best_lap(self.current_lap, self.best_lap):
+            self.new_best_lap()
 
         # Save the current lap to file if necessary
         if self.save_data:
