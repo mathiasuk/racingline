@@ -44,11 +44,6 @@ def acMain(ac_version):
     ac.setSize(appWindow, app_size_x, app_size_y)
     ac.addRenderCallback(appWindow, onFormRender)
 
-#    button = ac.addButton(appWindow, "Export data")
-#    ac.setPosition(button, 10, 10)
-#    ac.setSize(button, 500, 10)
-#    ac.addOnClickedListener(button, export_data_button_callback)
-
     # Create labels
     label = ac.addLabel(appWindow, 'Current speed')
     ac.setText(label, 'Speed')
@@ -68,6 +63,18 @@ def acMain(ac_version):
     ac.setSize(session.save_checkbox, 10, 10)
     ac.setPosition(session.save_checkbox, 10, 180)
     ac.addOnCheckBoxChanged(session.save_checkbox, save_checkbox_callback)
+
+    # Zoom in/out buttons
+    zoomin_button = ac.addButton(appWindow, '+')
+    ac.setPosition(zoomin_button, 380, 30)
+    ac.setSize(zoomin_button, 10, 10)
+    ac.addOnClickedListener(zoomin_button, session.zoom_in)
+
+    # Zoom in/out buttons
+    zoomout_button = ac.addButton(appWindow, '+')
+    ac.setPosition(zoomout_button, 390, 30)
+    ac.setSize(zoomout_button, 10, 10)
+    ac.addOnClickedListener(zoomout_button, session.zoom_in)
 
     # Create first lap
     session.new_lap(ac.getCarState(0, acsys.CS.LapCount))

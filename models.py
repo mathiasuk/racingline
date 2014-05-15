@@ -48,9 +48,10 @@ class Session(object):
         self.save_data = False
         self.start_time = datetime.now()
         self.current_data = {}
-        self.delta = 0.0  # Time since last data update
+        self.delta = 0.0    # Time since last data update
         self.freq = 0.5
-        self.laps = []  # This is only used when running outside of AC
+        self.laps = []      # This is only used when running outside of AC
+        self.zoom = 1.0     # Current zoom level
 
         # Labels
         self.current_speed_label = None
@@ -269,6 +270,18 @@ class Session(object):
 
         self.render_tyres_slip()
 
+    def zoom_in(self):
+        '''
+        Increase the current map zoom level
+        '''
+        self.zoom += 0.5
+
+    def zoom_out(self):
+        '''
+        Decrease the current map zoom level
+        '''
+        self.zoom -= 0.5
+
     def json_dumps(self):
         '''
         Returns a JSON representation of the Session
@@ -432,28 +445,35 @@ class Lap(object):
             return None
         result = []
 
-        # TODO: handle "zoom"
+        # Zoom in/out last point:
+        last_x = last_point.x * self.session.zoom
+        last_z = last_point.z * self.session.zoom
 
         # Calculate the shift to fit the points within the widget
-        if last_point.x > self.session.app_size_x / 2:
-            diff_x = -(last_point.x - self.session.app_size_x / 2)
+        if last_x > self.session.app_size_x / 2:
+            diff_x = -(last_x - self.session.app_size_x / 2)
         else:
-            diff_x = self.session.app_size_x / 2 - last_point.x
-        if last_point.z > self.session.app_size_y / 2:
-            diff_z = -(last_point.z - self.session.app_size_y / 2)
+            diff_x = self.session.app_size_x / 2 - last_x
+        if last_z > self.session.app_size_y / 2:
+            diff_z = -(last_z - self.session.app_size_y / 2)
         else:
-            diff_z = self.session.app_size_y / 2 - last_point.z
+            diff_z = self.session.app_size_y / 2 - last_z
 
         # Shift the points, only keep the one that actually fit
         # in the widget
         out = False  # Whether or not the last point was outside the widget
         for point in self.points:
+            # Zoom in/out point:
+            x = point.x * self.session.zoom
+            y = point.y * self.session.zoom
+            z = point.x * self.session.zoom
+
             # Rotate the point by 'heading' rad around the center (last point)
-            x = math.cos(heading) * (point.x - last_point.x) - math.sin(heading) * (point.z - last_point.z) + last_point.x
-            z = math.sin(heading) * (point.x - last_point.x) + math.cos(heading) * (point.z - last_point.z) + last_point.z
+            x = math.cos(heading) * (x - last_x) - math.sin(heading) * (z - last_z) + last_x
+            z = math.sin(heading) * (x - last_x) + math.cos(heading) * (z - last_z) + last_z
 
             x = x + diff_x
-            y = point.y  # We ignore y for now
+            y = y  # We ignore y for now
             z = z + diff_z
 
             if x > self.session.app_size_x or x < 0 or \
