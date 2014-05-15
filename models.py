@@ -281,7 +281,7 @@ class Session(object):
         '''
         Decrease the current map zoom level
         '''
-        self.zoom /= 1.2 
+        self.zoom /= 1.2
         self.ac.console('zoomout: %f' % self.zoom)
 
     def json_dumps(self):
@@ -447,35 +447,26 @@ class Lap(object):
             return None
         result = []
 
-        # Zoom in/out last point:
-        last_x = last_point.x * self.session.zoom
-        last_z = last_point.z * self.session.zoom
-
         # Calculate the shift to fit the points within the widget
-        if last_x > self.session.app_size_x / 2:
-            diff_x = -(last_x - self.session.app_size_x / 2)
+        if last_point.x > self.session.app_size_x / 2:
+            diff_x = -(last_point.x - self.session.app_size_x / 2)
         else:
-            diff_x = self.session.app_size_x / 2 - last_x
-        if last_z > self.session.app_size_y / 2:
-            diff_z = -(last_z - self.session.app_size_y / 2)
+            diff_x = self.session.app_size_x / 2 - last_point.x
+        if last_point.z > self.session.app_size_y / 2:
+            diff_z = -(last_point.z - self.session.app_size_y / 2)
         else:
-            diff_z = self.session.app_size_y / 2 - last_z
+            diff_z = self.session.app_size_y / 2 - last_point.z
 
         # Shift the points, only keep the one that actually fit
         # in the widget
         out = False  # Whether or not the last point was outside the widget
         for point in self.points:
-            # Zoom in/out point:
-            x = point.x * self.session.zoom
-            y = point.y * self.session.zoom
-            z = point.x * self.session.zoom
-
             # Rotate the point by 'heading' rad around the center (last point)
-            x = math.cos(heading) * (x - last_x) - math.sin(heading) * (z - last_z) + last_x
-            z = math.sin(heading) * (x - last_x) + math.cos(heading) * (z - last_z) + last_z
+            x = math.cos(heading) * (point.x - last_point.x) - math.sin(heading) * (point.z - last_point.z) + last_point.x
+            z = math.sin(heading) * (point.x - last_point.x) + math.cos(heading) * (point.z - last_point.z) + last_point.z
 
             x = x + diff_x
-            y = y  # We ignore y for now
+            y = point.y  # We ignore y for now
             z = z + diff_z
 
             if x > self.session.app_size_x or x < 0 or \
@@ -484,6 +475,11 @@ class Lap(object):
                 if result:
                     result[-1].end = True
                 continue
+
+            # Zoom in/out point:
+            x = x * self.session.zoom
+            y = y * self.session.zoom
+            z = z * self.session.zoom
 
             p = Point(x, y, z)
             p.speed = point.speed

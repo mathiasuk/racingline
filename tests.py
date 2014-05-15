@@ -48,6 +48,22 @@ class TestLap(unittest.TestCase):
         self.assertTrue(result[2].equal_coords(Point(202, 0, 98)))
         self.assertTrue(result[3].equal_coords(Point(200, 0, 100)))
 
+    def test_normalise_zoomin(self):
+        self.lap.session.zoom = 1.4
+        result = self.lap.normalise(self.lap, math.pi / 2)
+        self.assertTrue(result[0].equal_coords(Point(287, 0, 130.2)))
+        self.assertTrue(result[1].equal_coords(Point(287, 0, 134.4)))
+        self.assertTrue(result[2].equal_coords(Point(282.8, 0, 137.2)))
+        self.assertTrue(result[3].equal_coords(Point(280, 0, 140)))
+
+    def test_normalise_zoomout(self):
+        self.lap.session.zoom = 0.5
+        result = self.lap.normalise(self.lap, math.pi / 2)
+        self.assertTrue(result[0].equal_coords(Point(102.5, 0, 46.5)))
+        self.assertTrue(result[1].equal_coords(Point(102.5, 0, 48)))
+        self.assertTrue(result[2].equal_coords(Point(101, 0, 49)))
+        self.assertTrue(result[3].equal_coords(Point(100, 0, 50)))
+
     def test_json_dumps(self):
         session = Session()
         lap = Lap(session, 0)
