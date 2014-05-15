@@ -65,16 +65,14 @@ def acMain(ac_version):
     ac.addOnCheckBoxChanged(session.save_checkbox, save_checkbox_callback)
 
     # Zoom in/out buttons
+    zoomout_button = ac.addButton(appWindow, '-')
+    ac.setPosition(zoomout_button, 350, 30)
+    ac.setSize(zoomout_button, 20, 20)
+    ac.addOnClickedListener(zoomout_button, zoomout_callback)
     zoomin_button = ac.addButton(appWindow, '+')
     ac.setPosition(zoomin_button, 380, 30)
-    ac.setSize(zoomin_button, 10, 10)
-    ac.addOnClickedListener(zoomin_button, session.zoom_in)
-
-    # Zoom in/out buttons
-    zoomout_button = ac.addButton(appWindow, '+')
-    ac.setPosition(zoomout_button, 390, 30)
-    ac.setSize(zoomout_button, 10, 10)
-    ac.addOnClickedListener(zoomout_button, session.zoom_in)
+    ac.setSize(zoomin_button, 20, 20)
+    ac.addOnClickedListener(zoomin_button, zoomin_callback)
 
     # Create first lap
     session.new_lap(ac.getCarState(0, acsys.CS.LapCount))
@@ -100,4 +98,13 @@ def save_checkbox_callback(name, state):
         session.save_data = True
     else:
         session.save_data = False
-    session.console('** %s' % session.save_data)
+
+
+def zoomin_callback(x, y):
+    global session
+    session.zoom_in()
+
+
+def zoomout_callback(x, y):
+    global session
+    session.zoom_out()
