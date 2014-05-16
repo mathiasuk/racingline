@@ -469,17 +469,16 @@ class Lap(object):
             y = point.y  # We ignore y for now
             z = z + diff_z
 
+            # Zoom in/out point:
+            x += (x - self.session.app_size_x / 2) * self.session.zoom
+            z += (z - self.session.app_size_y / 2) * self.session.zoom
+
             if x > self.session.app_size_x or x < 0 or \
                z > self.session.app_size_y or z < 0:
                 out = True
                 if result:
                     result[-1].end = True
                 continue
-
-            # Zoom in/out point:
-            x = x * self.session.zoom
-            y = y * self.session.zoom
-            z = z * self.session.zoom
 
             p = Point(x, y, z)
             p.speed = point.speed
