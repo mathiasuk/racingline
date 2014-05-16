@@ -54,6 +54,7 @@ docs/_build/
 
 # Vim backup files
 *~
+*.swp
 
 # Export folder
 exports

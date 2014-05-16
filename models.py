@@ -39,6 +39,7 @@ class Session(object):
         '''
         self.ac = ac
         self.acsys = acsys
+        self.app_path = os.path.dirname(os.path.realpath(__file__))
         self.current_lap = None
         self.best_lap = None
         self.trackname = ''
@@ -66,8 +67,7 @@ class Session(object):
         if not (self.trackname and self.carname):
             return None
 
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        dirpath = os.path.join(current_dir, 'best-laps', self.trackname)
+        dirpath = os.path.join(self.app_path, 'best-laps', self.trackname)
         try:
             if not os.path.exists(dirpath):
                 os.makedirs(dirpath)
@@ -298,8 +298,7 @@ class Session(object):
         Export the Session data to a file in the plugin's directory
         Returns the path to the file
         '''
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        target_dir = os.path.join(current_dir, 'exports')
+        target_dir = os.path.join(self.app_path, 'exports')
 
         # Create the export directory if it doesn't already exists
         if not os.path.exists(target_dir):

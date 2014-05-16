@@ -17,6 +17,8 @@ from models import Session
 import ac
 import acsys
 
+import os
+
 # Data points frequency in seconds
 FREQ = 0.125
 
@@ -65,14 +67,23 @@ def acMain(ac_version):
     ac.addOnCheckBoxChanged(session.save_checkbox, save_checkbox_callback)
 
     # Zoom in/out buttons
-    zoomout_button = ac.addButton(appWindow, '-')
-    ac.setPosition(zoomout_button, 350, 30)
-    ac.setSize(zoomout_button, 20, 20)
+    zoomout_button = ac.addButton(appWindow, '')
+    ac.setPosition(zoomout_button, 370, 185)
+    ac.setSize(zoomout_button, 10, 10)
     ac.addOnClickedListener(zoomout_button, zoomout_callback)
-    zoomin_button = ac.addButton(appWindow, '+')
-    ac.setPosition(zoomin_button, 380, 30)
-    ac.setSize(zoomin_button, 20, 20)
+    ac.drawBorder(zoomout_button, 0)
+    ac.setBackgroundOpacity(zoomout_button, 0)
+    texture = os.path.join(session.app_path, 'img', 'zoomout.png')
+    ac.setBackgroundTexture(zoomout_button, texture)
+
+    zoomin_button = ac.addButton(appWindow, '')
+    ac.setPosition(zoomin_button, 385, 185)
+    ac.setSize(zoomin_button, 10, 10)
     ac.addOnClickedListener(zoomin_button, zoomin_callback)
+    ac.drawBorder(zoomin_button, 0)
+    ac.setBackgroundOpacity(zoomin_button, 0)
+    texture = os.path.join(session.app_path, 'img', 'zoomin.png')
+    ac.setBackgroundTexture(zoomin_button, texture)
 
     # Create first lap
     session.new_lap(ac.getCarState(0, acsys.CS.LapCount))
