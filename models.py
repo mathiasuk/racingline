@@ -121,10 +121,11 @@ class Session(object):
         f.write(self.best_lap.json_dumps() + '\n')
         f.close()
 
-    def new_lap(self, count):
+    def new_lap(self, count, drop=False):
         '''
         Create a new lap, save best lap if previous lap was faster
         than current best
+        if drop is True we don't save the current lap or use it to compare with best lap
         '''
         def is_best_lap(new, best):
             '''
@@ -142,13 +143,14 @@ class Session(object):
                 return True
             return False
 
-        # Check if current_lap is faster than previous best
-        if is_best_lap(self.current_lap, self.best_lap):
-            self.new_best_lap()
+        if not drop:
+            # Check if current_lap is faster than previous best
+            if is_best_lap(self.current_lap, self.best_lap):
+                self.new_best_lap()
 
-        # Save the current lap to file if necessary
-        if self.save_data:
-            self.export_data()
+            # Save the current lap to file if necessary
+            if self.save_data:
+                self.export_data()
 
         # Create new lap
         self.current_lap = Lap(self, count)
@@ -175,17 +177,24 @@ class Session(object):
         '''
         Called by acUpdate, updates internal data
         '''
-        # Cself if we're in a new lap
+        # Check if we're in a new lap
         lap_count = self.ac.getCarState(0, self.acsys.CS.LapCount)
-        if lap_count != self.current_lap.count:
-            # Create a new lap
-            self.new_lap(lap_count)
+        lap_time = self.ac.getCarState(0, self.acsys.CS.LapTime)
+        if lap_time < self.current_lap.laptime:
+            splits = self.ac.getLastSplits(0)
+            self.ac.console('split: %s' % splits)
+            if all(split > 0 for split in splits):
+                # If we have splits then the last lap was complete
+                self.new_lap(lap_count)
+            else:
+                # Not all splits are valid, there was a restart, etc. we can drop 
+                # the previous lap
+                self.new_lap(lap_count, drop=True)
 
         # Update the status of the current lap
         self.current_lap.invalid = self.ac.getCarState(0, self.acsys.CS.LapInvalidated)
         self.current_lap.laptime = self.ac.getCarState(0, self.acsys.CS.LapTime)
-
-        # Save some current data for rendering
+# Save some current data for rendering
         self.current_data['current_speed'] = self.ac.getCarState(0, self.acsys.CS.SpeedKMH)
         self.current_data['tyre_radius'] = self.ac.getCarState(0, self.acsys.CS.TyreRadius)
         self.current_data['wheel_angular_speed'] = self.ac.getCarState(0, self.acsys.CS.WheelAngularSpeed)
@@ -437,11 +446,12 @@ class Lap(object):
         Return a normalised version of the points based on the widget
         size, zoom level and last position of current lap
         '''
+        result = []
+
         last_point = current_lap.last_point
         if not last_point:
             # We don't have any data yet
-            return None
-        result = []
+            return []
 
         # Calculate the shift to fit the points within the widget
         if last_point.x > self.session.app_size_x / 2:
