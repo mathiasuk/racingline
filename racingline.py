@@ -115,14 +115,27 @@ def acMain(ac_version):
 def acUpdate(deltaT):
     global session
 
-    session.update_data(deltaT)
+    try:
+        session.update_data(deltaT)
+    except:
+        import sys, traceback
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.format_tb
+        session.ac.console('RacingLine Error (logged to file)')
+        session.ac.log(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
 
 def onFormRender(deltaT):
     global session
 
-    session.render()
-
+    try:
+        session.render()
+    except:
+        import sys, traceback
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.format_tb
+        session.ac.console('RacingLine Error (logged to file)')
+        session.ac.log(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
 def save_checkbox_callback(name, state):
     global session
