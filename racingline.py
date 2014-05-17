@@ -27,63 +27,82 @@ app_size_y = 200
 session = None
 
 
+class UI(object):
+    '''
+    Object that deals with everything related to the app's widget
+    '''
+    def __init__(self):
+        self.widget = None
+        self.labels = {}
+        self.chkboxes = {}
+        self.buttons = {}
+
+        self._create_widget()
+        self._create_labels()
+
+        self._create_checkbox('export_data', 'Export Data', 10, 180,
+                              10, 10, save_checkbox_callback)
+
+        self._create_button('zoomout', 370, 185, 10, 10, zoomout_callback,
+                            texture='zoomout.png')
+        self._create_button('zoomin', 385, 185, 10, 10, zoomin_callback,
+                            texture='zoomin.png')
+
+    def _create_widget(self):
+        self.widget = ac.newApp('Racing Line')
+        ac.setSize(self.widget, app_size_x, app_size_y)
+        ac.addRenderCallback(self.widget, onFormRender)
+
+    def _create_label(self, name, text, x, y):
+        label = ac.addLabel(self.widget, name)
+        ac.setText(label, text)
+        ac.setPosition(label, x, y)
+        self.labels[name] = label
+
+    def _create_checkbox(self, name, text, x, y, size_x, size_y, callback):
+        checkbox = ac.addCheckBox(self.widget, text)
+        ac.setPosition(checkbox, x, y)
+        ac.setSize(checkbox, size_x, size_y)
+        ac.addOnCheckBoxChanged(checkbox, callback)
+        self.chkboxes[name] = checkbox
+
+    def _create_button(self, name, x, y, size_x, size_y, callback,
+                       border=0, opacity=0, texture=None):
+        button = ac.addButton(self.widget, '')
+        ac.setPosition(button, x, y)
+        ac.setSize(button, size_x, size_y)
+        ac.addOnClickedListener(button, callback)
+        ac.drawBorder(button, border)
+        ac.setBackgroundOpacity(button, opacity)
+        if texture:
+            texture = os.path.join(session.app_path, 'img', texture)
+            ac.setBackgroundTexture(button, texture)
+        self.buttons[name] = button
+
+    def _create_labels(self):
+        self._create_label('current_speed', 'Speed', 10, 30)
+        self._create_label('best_speed', 'Best', 10, 50)
+        self._create_label('current_speed_val', '', 60, 30)
+        self._create_label('best_speed_val', '', 60, 50)
+
+
 def acMain(ac_version):
     global session
+
+    # Initialise UI:
+    ui = UI()
 
     # Create session object
     session = Session(ac, acsys)
     session.app_size_x = app_size_x
     session.app_size_y = app_size_y
+    session.ui = ui
     session.freq = FREQ
     session.trackname = ac.getTrackName(0)
     session.carname = ac.getCarName(0)
 
     # Load best lap time if it exists for current track and car
     session.load_best_lap()
-
-    # Create App Widget
-    appWindow = ac.newApp('Racing Line')
-    ac.setSize(appWindow, app_size_x, app_size_y)
-    ac.addRenderCallback(appWindow, onFormRender)
-
-    # Create labels
-    label = ac.addLabel(appWindow, 'Current speed')
-    ac.setText(label, 'Speed')
-    ac.setPosition(label, 10, 30)
-    label = ac.addLabel(appWindow, 'Best speed')
-    ac.setText(label, 'Best')
-    ac.setPosition(label, 10, 50)
-    session.current_speed_label = ac.addLabel(appWindow, 'Best speed value')
-    ac.setText(session.current_speed_label, '')
-    ac.setPosition(session.current_speed_label, 60, 30)
-    session.best_speed_label = ac.addLabel(appWindow, 'Best speed value')
-    ac.setText(session.best_speed_label, '')
-    ac.setPosition(session.best_speed_label, 60, 50)
-
-    # Create checkbox
-    session.save_checkbox = ac.addCheckBox(appWindow, 'Export data')
-    ac.setSize(session.save_checkbox, 10, 10)
-    ac.setPosition(session.save_checkbox, 10, 180)
-    ac.addOnCheckBoxChanged(session.save_checkbox, save_checkbox_callback)
-
-    # Zoom in/out buttons
-    zoomout_button = ac.addButton(appWindow, '')
-    ac.setPosition(zoomout_button, 370, 185)
-    ac.setSize(zoomout_button, 10, 10)
-    ac.addOnClickedListener(zoomout_button, zoomout_callback)
-    ac.drawBorder(zoomout_button, 0)
-    ac.setBackgroundOpacity(zoomout_button, 0)
-    texture = os.path.join(session.app_path, 'img', 'zoomout.png')
-    ac.setBackgroundTexture(zoomout_button, texture)
-
-    zoomin_button = ac.addButton(appWindow, '')
-    ac.setPosition(zoomin_button, 385, 185)
-    ac.setSize(zoomin_button, 10, 10)
-    ac.addOnClickedListener(zoomin_button, zoomin_callback)
-    ac.drawBorder(zoomin_button, 0)
-    ac.setBackgroundOpacity(zoomin_button, 0)
-    texture = os.path.join(session.app_path, 'img', 'zoomin.png')
-    ac.setBackgroundTexture(zoomin_button, texture)
 
     # Create first lap
     session.new_lap(ac.getCarState(0, acsys.CS.LapCount))

@@ -40,6 +40,7 @@ class Session(object):
         self.ac = ac
         self.acsys = acsys
         self.app_path = os.path.dirname(os.path.realpath(__file__))
+        self.ui = None
         self.current_lap = None
         self.best_lap = None
         self.trackname = ''
@@ -53,11 +54,6 @@ class Session(object):
         self.freq = 0.5
         self.laps = []      # This is only used when running outside of AC
         self.zoom = 1.0     # Current zoom level
-
-        # Labels
-        self.current_speed_label = None
-        self.best_speed_label = None
-        self.save_checkbox = None
 
     def _best_lap_path(self):
         '''
@@ -256,17 +252,19 @@ class Session(object):
         if not last_point:
             return
         current_speed = self.current_data['current_speed']
-        self.ac.setText(self.current_speed_label, "{0}".format(round(current_speed, 1)))
+        current_speed_val_label = self.ui.labels['current_speed_val']
+        best_speed_val_label = self.ui.labels['current_speed_val']
+        self.ac.setText(current_speed_val_label, "{0}".format(round(current_speed, 1)))
 
         # Print the speed of the closest point of the best lap if any
         if last_point.best_speed is not None:
-            self.ac.setText(self.best_speed_label, "{0}".format(round(last_point.best_speed, 1)))
+            self.ac.setText(best_speed_val_label, "{0}".format(round(last_point.best_speed, 1)))
             if last_point.best_speed > current_speed + 1:  # +1 is to avoid flickering
-                self.ac.setFontColor(self.current_speed_label, *RED)
+                self.ac.setFontColor(current_speed_val_label, *RED)
             elif last_point.best_speed < current_speed - 1:
-                self.ac.setFontColor(self.current_speed_label, *GREEN)
+                self.ac.setFontColor(current_speed_val_label, *GREEN)
             else:
-                self.ac.setFontColor(self.current_speed_label, *WHITE)
+                self.ac.setFontColor(current_speed_val_label, *WHITE)
 
         self.render_tyres_slip()
 
@@ -469,8 +467,10 @@ class Lap(object):
             z = z + diff_z
 
             # Zoom in/out point:
-            x += (x - self.session.app_size_x / 2) * self.session.zoom
-            z += (z - self.session.app_size_y / 2) * self.session.zoom
+            # Takes the difference between the coordinate and the center point,
+            # multiply it by the zoom ratio and add to center coordinate
+            x = self.session.app_size_x / 2 + (x - self.session.app_size_x / 2) * self.session.zoom
+            z = self.session.app_size_y / 2 + (z - self.session.app_size_y / 2) * self.session.zoom
 
             if x > self.session.app_size_x or x < 0 or \
                z > self.session.app_size_y or z < 0:
