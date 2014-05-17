@@ -245,6 +245,7 @@ class Session(object):
 
         if self.best_lap:
             self.best_lap.render(self.current_lap, heading, GREY_60)
+            self.ac.setText(self.ui.labels['best_lap_time_val'], '%s' % self.best_lap.human_laptime())
 
         self.current_lap.render(self.current_lap, heading)
 
@@ -253,15 +254,15 @@ class Session(object):
             return
         current_speed = self.current_data['current_speed']
         current_speed_val_label = self.ui.labels['current_speed_val']
-        best_speed_val_label = self.ui.labels['current_speed_val']
+        best_speed_val_label = self.ui.labels['best_speed_val']
         self.ac.setText(current_speed_val_label, "{0}".format(round(current_speed, 1)))
 
         # Print the speed of the closest point of the best lap if any
         if last_point.best_speed is not None:
             self.ac.setText(best_speed_val_label, "{0}".format(round(last_point.best_speed, 1)))
-            if last_point.best_speed > current_speed + 1:  # +1 is to avoid flickering
+            if last_point.best_speed > current_speed + 2:  # +2 is to avoid flickering
                 self.ac.setFontColor(current_speed_val_label, *RED)
-            elif last_point.best_speed < current_speed - 1:
+            elif last_point.best_speed < current_speed - 2:
                 self.ac.setFontColor(current_speed_val_label, *GREEN)
             else:
                 self.ac.setFontColor(current_speed_val_label, *WHITE)

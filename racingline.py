@@ -41,7 +41,7 @@ class UI(object):
         self._create_widget()
         self._create_labels()
 
-        self._create_checkbox('export_data', 'Export Data', 10, 180,
+        self._create_checkbox('export_data', 'Export', 70, 180,
                               10, 10, save_checkbox_callback)
 
         self._create_button('zoomout', 370, 185, 10, 10, zoomout_callback,
@@ -85,6 +85,7 @@ class UI(object):
         self._create_label('best_speed', 'Best', 10, 50)
         self._create_label('current_speed_val', '', 60, 30)
         self._create_label('best_speed_val', '', 60, 50)
+        self._create_label('best_lap_time_val', '', 5, 175)
 
 
 def acMain(ac_version):
