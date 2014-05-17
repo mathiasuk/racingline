@@ -31,7 +31,8 @@ class UI(object):
     '''
     Object that deals with everything related to the app's widget
     '''
-    def __init__(self):
+    def __init__(self, session):
+        self.session = session
         self.widget = None
         self.labels = {}
         self.chkboxes = {}
@@ -89,17 +90,17 @@ class UI(object):
 def acMain(ac_version):
     global session
 
-    # Initialise UI:
-    ui = UI()
-
     # Create session object
     session = Session(ac, acsys)
     session.app_size_x = app_size_x
     session.app_size_y = app_size_y
-    session.ui = ui
     session.freq = FREQ
     session.trackname = ac.getTrackName(0)
     session.carname = ac.getCarName(0)
+
+    # Initialise UI:
+    ui = UI(session)
+    session.ui = ui
 
     # Load best lap time if it exists for current track and car
     session.load_best_lap()

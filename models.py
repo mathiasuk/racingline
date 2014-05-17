@@ -273,14 +273,12 @@ class Session(object):
         Increase the current map zoom level
         '''
         self.zoom *= 1.2
-        self.ac.console('zoomin: %f' % self.zoom)
 
     def zoom_out(self):
         '''
         Decrease the current map zoom level
         '''
         self.zoom /= 1.2
-        self.ac.console('zoomout: %f' % self.zoom)
 
     def json_dumps(self):
         '''
