@@ -194,7 +194,7 @@ class Session(object):
         # Update the status of the current lap
         self.current_lap.invalid = self.ac.getCarState(0, self.acsys.CS.LapInvalidated)
         self.current_lap.laptime = self.ac.getCarState(0, self.acsys.CS.LapTime)
-# Save some current data for rendering
+        # Save some current data for rendering
         self.current_data['current_speed'] = self.ac.getCarState(0, self.acsys.CS.SpeedKMH)
         self.current_data['tyre_radius'] = self.ac.getCarState(0, self.acsys.CS.TyreRadius)
         self.current_data['wheel_angular_speed'] = self.ac.getCarState(0, self.acsys.CS.WheelAngularSpeed)
