@@ -18,6 +18,8 @@ import ac
 import acsys
 
 import os
+import sys
+import traceback
 
 # Data points frequency in seconds
 FREQ = 0.125
@@ -31,8 +33,8 @@ class UI(object):
     '''
     Object that deals with everything related to the app's widget
     '''
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, session_):
+        self.session = session_
         self.widget = None
         self.labels = {}
         self.chkboxes = {}
@@ -118,9 +120,7 @@ def acUpdate(deltaT):
     try:
         session.update_data(deltaT)
     except:
-        import sys, traceback
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.format_tb
         session.ac.console('RacingLine Error (logged to file)')
         session.ac.log(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
@@ -131,11 +131,10 @@ def onFormRender(deltaT):
     try:
         session.render()
     except:
-        import sys, traceback
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.format_tb
         session.ac.console('RacingLine Error (logged to file)')
         session.ac.log(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
 
 def save_checkbox_callback(name, state):
     global session

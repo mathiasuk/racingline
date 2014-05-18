@@ -187,7 +187,7 @@ class Session(object):
                 # If we have splits then the last lap was complete
                 self.new_lap(lap_count)
             else:
-                # Not all splits are valid, there was a restart, etc. we can drop 
+                # Not all splits are valid, there was a restart, etc. we can drop
                 # the previous lap
                 self.new_lap(lap_count, drop=True)
 
