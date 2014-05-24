@@ -253,10 +253,10 @@ class Session(object):
         heading = self.current_data['heading']
 
         if self.best_lap:
-            self.best_lap.render(self.current_lap, heading, GREY_60)
+            self.best_lap.render(self.current_lap.last_point, heading, GREY_60)
             self.ac.setText(self.ui.labels['best_lap_time_val'], '%s' % self.best_lap.human_laptime())
 
-        self.current_lap.render(self.current_lap, heading)
+        self.current_lap.render(self.current_lap.last_point, heading)
 
         last_point = self.current_lap.last_point
         if not last_point:
@@ -405,30 +405,18 @@ class Point(object):
         return result
 
 
-class Lap(object):
-    def __init__(self, session, count):
+class Line(object):
+    '''
+    A line is a series of point, used to represent a lap or circuit
+    '''
+    def __init__(self, session):
         self.session = session  # Reference to the current session
-        self.count = count
         self.points = []
-        self.invalid = 0
-        self.laptime = 0
-
-    def human_laptime(self):
-        '''
-        Returns the laptime under the format: m:s.ms
-        '''
-        s, ms = divmod(self.laptime, 1000)
-        m, s = divmod(s, 60)
-        return '%d:%d:%d' % (m, s, ms)
-
-    def __repr__(self):
-        return '%d: %s%s' % (self.count, self.human_laptime(),
-                             '*' if self.invalid else '')
 
     @property
     def last_point(self):
         '''
-        Returns the last point from the lap
+        Returns the last point from the line
         '''
         try:
             return self.points[-1]
@@ -436,40 +424,39 @@ class Lap(object):
             # This can happen before the first lap is recorded, but also happens
             # "randomly" at given points on the track...
             # so we check if we actually have points.
-            # Note that this is a dirty hack and it SHOULDN'T work!
+            # Note that this is a dirty hack and it SHOULDN'T work! (but it does)
             if self.points:
                 return self.points[-1]
             return None
 
-    def normalise(self, current_lap, heading):
+    def normalise(self, reference_point, heading):
         '''
         Return a normalised version of the points based on the widget
-        size, zoom level and last position of current lap
+        size, zoom level, the given reference point and current heading
         '''
         result = []
 
-        last_point = current_lap.last_point
-        if not last_point:
+        if not reference_point:
             # We don't have any data yet
             return []
 
         # Calculate the shift to fit the points within the widget
-        if last_point.x > self.session.app_size_x / 2:
-            diff_x = -(last_point.x - self.session.app_size_x / 2)
+        if reference_point.x > self.session.app_size_x / 2:
+            diff_x = -(reference_point.x - self.session.app_size_x / 2)
         else:
-            diff_x = self.session.app_size_x / 2 - last_point.x
-        if last_point.z > self.session.app_size_y / 2:
-            diff_z = -(last_point.z - self.session.app_size_y / 2)
+            diff_x = self.session.app_size_x / 2 - reference_point.x
+        if reference_point.z > self.session.app_size_y / 2:
+            diff_z = -(reference_point.z - self.session.app_size_y / 2)
         else:
-            diff_z = self.session.app_size_y / 2 - last_point.z
+            diff_z = self.session.app_size_y / 2 - reference_point.z
 
         # Shift the points, only keep the one that actually fit
         # in the widget
         out = False  # Whether or not the last point was outside the widget
         for point in self.points:
             # Rotate the point by 'heading' rad around the center (last point)
-            x = math.cos(heading) * (point.x - last_point.x) - math.sin(heading) * (point.z - last_point.z) + last_point.x
-            z = math.sin(heading) * (point.x - last_point.x) + math.cos(heading) * (point.z - last_point.z) + last_point.z
+            x = math.cos(heading) * (point.x - reference_point.x) - math.sin(heading) * (point.z - reference_point.z) + reference_point.x
+            z = math.sin(heading) * (point.x - reference_point.x) + math.cos(heading) * (point.z - reference_point.z) + reference_point.z
 
             x = x + diff_x
             y = point.y  # We ignore y for now
@@ -499,14 +486,108 @@ class Lap(object):
 
         return result
 
-    def render(self, current_lap, heading, color=None):
+    def render(self, reference_point, heading, color=None):
+        '''
+        Renders the lap using the given color (default to grey)
+        '''
+        self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
+
+        for point in self.normalise(reference_point, heading):
+            if point.start:
+                self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
+
+            self.session.ac.glVertex2f(point.x, point.z)
+
+            if color:
+                self.session.ac.glColor4f(*color)
+            else:
+                self.session.ac.glColor4f(*GREY_30)
+
+            if point.end:
+                self.session.ac.glEnd()
+
+        self.session.ac.glEnd()
+
+    def svg_path(self):
+        '''
+        Returns a SVG path version of the line
+        '''
+        path = 'M %f,%f' % (self.points[0].x, self.points[0].z)
+
+        for point in self.points:
+            path += ' L %f,%f' % (point.x, point.z)
+
+        return path
+
+    def write_svg(self, filename, title=''):
+        '''
+        Write a SVG path of the line to filename
+        '''
+        data = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 140" class="racing-line">
+    <title>%s</title>
+
+    <path d="%s"
+            stroke="#000000"
+            fill="none"
+            class="racing-line-line" />
+</svg>
+''' % (title, self.svg_path())
+
+        try:
+            f = open(filename, 'w')
+        except Exception as e:
+            self.console('Can\'t open file "%s": %s' % (filename, e))
+
+        f.write(data)
+        f.close()
+
+    def closest_point(self, ref_point):
+        '''
+        Returns the point from the line closest to the given point
+        '''
+        distance = None
+        closest = None
+        for point in self.points:
+            d = (point.x - ref_point.x) ** 2 + \
+                (point.y - ref_point.y) ** 2 + \
+                (point.z - ref_point.z) ** 2
+            d = abs(d)
+
+            if distance is None or d < distance:
+                distance = d
+                closest = point
+
+        return closest
+
+
+class Lap(Line):
+    def __init__(self, session, count):
+        Line.__init__(self, session)
+        self.count = count
+        self.invalid = 0
+        self.laptime = 0
+
+    def human_laptime(self):
+        '''
+        Returns the laptime under the format: m:s.ms
+        '''
+        s, ms = divmod(self.laptime, 1000)
+        m, s = divmod(s, 60)
+        return '%d:%d:%d' % (m, s, ms)
+
+    def __repr__(self):
+        return '%d: %s%s' % (self.count, self.human_laptime(),
+                             '*' if self.invalid else '')
+
+    def render(self, reference_point, heading, color=None):
         '''
         Renders the lap, if no color is given we use green for fast sectors
         and red for slow sectors, and all green if no best_speed is available
         '''
         self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
 
-        for point in self.normalise(current_lap, heading):
+        for point in self.normalise(reference_point, heading):
             if point.start:
                 self.session.ac.glBegin(self.session.acsys.GL.LineStrip)
 
@@ -566,58 +647,6 @@ class Lap(object):
 
             point = Point(**previous)
             self.points.append(point)
-
-    def svg_path(self):
-        '''
-        Returns a SVG path version of the current lap points
-        '''
-        path = 'M %f,%f' % (self.points[0].x, self.points[0].z)
-
-        for point in self.points:
-            path += ' L %f,%f' % (point.x, point.z)
-
-        return path
-
-    def write_svg(self, filename):
-        '''
-        Write a SVG path of the current lap to filename
-        '''
-        data = '''
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 140" class="racing-line">
-    <title>%s</title>
-
-    <path d="%s"
-            stroke="#000000"
-            fill="none"
-            class="racing-line-lap" />
-</svg>
-''' % (self.human_laptime(), self.svg_path())
-
-        try:
-            f = open(filename, 'w')
-        except Exception as e:
-            self.console('Can\'t open file "%s": %s' % (filename, e))
-
-        f.write(data)
-        f.close()
-
-    def closest_point(self, ref_point):
-        '''
-        Returns the point from the lap closest to the given point
-        '''
-        distance = None
-        closest = None
-        for point in self.points:
-            d = (point.x - ref_point.x) ** 2 + \
-                (point.y - ref_point.y) ** 2 + \
-                (point.z - ref_point.z) ** 2
-            d = abs(d)
-
-            if distance is None or d < distance:
-                distance = d
-                closest = point
-
-        return closest
 
 
 def get_color_from_ratio(ratio, fade_in=False, mode='yr'):

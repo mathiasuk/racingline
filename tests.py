@@ -42,7 +42,7 @@ class TestLap(unittest.TestCase):
         self.assertEqual(self.lap.last_point, self.lap.points[-1])
 
     def test_normalise(self):
-        result = self.lap.normalise(self.lap, math.pi / 2)
+        result = self.lap.normalise(self.lap.last_point, math.pi / 2)
         self.assertTrue(result[0].equal_coords(Point(205, 0, 93)))
         self.assertTrue(result[1].equal_coords(Point(205, 0, 96)))
         self.assertTrue(result[2].equal_coords(Point(202, 0, 98)))
@@ -50,7 +50,7 @@ class TestLap(unittest.TestCase):
 
     def test_normalise_zoomin(self):
         self.lap.session.zoom = 1.4
-        result = self.lap.normalise(self.lap, math.pi / 2)
+        result = self.lap.normalise(self.lap.last_point, math.pi / 2)
         self.assertTrue(result[0].equal_coords(Point(207, 0, 90.2)))
         self.assertTrue(result[1].equal_coords(Point(207, 0, 94.4)))
         self.assertTrue(result[2].equal_coords(Point(202.8, 0, 97.2)))
@@ -58,7 +58,7 @@ class TestLap(unittest.TestCase):
 
     def test_normalise_zoomout(self):
         self.lap.session.zoom = 0.5
-        result = self.lap.normalise(self.lap, math.pi / 2)
+        result = self.lap.normalise(self.lap.last_point, math.pi / 2)
         self.assertTrue(result[0].equal_coords(Point(202.5, 0, 96.5)))
         self.assertTrue(result[1].equal_coords(Point(202.5, 0, 98)))
         self.assertTrue(result[2].equal_coords(Point(201, 0, 99)))
