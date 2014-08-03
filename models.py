@@ -574,7 +574,7 @@ class Lap(Line):
         '''
         s, ms = divmod(self.laptime, 1000)
         m, s = divmod(s, 60)
-        return '%d:%d:%d' % (m, s, ms)
+        return '%d:%d.%d' % (m, s, ms)
 
     def __repr__(self):
         return '%d: %s%s' % (self.count, self.human_laptime(),
@@ -596,8 +596,10 @@ class Lap(Line):
             if color:
                 self.session.ac.glColor4f(*color)
             elif point.best_speed is not None:
-                if point.speed < point.best_speed:
+                if point.best_speed > point.speed + 2:
                     self.session.ac.glColor4f(*RED)
+                elif point.best_speed < current_speed - 2:
+                    self.session.ac.glColor4f(*WHITE)
                 else:
                     self.session.ac.glColor4f(*GREEN)
             else:
@@ -647,6 +649,13 @@ class Lap(Line):
 
             point = Point(**previous)
             self.points.append(point)
+
+
+class Track(object):
+    def __init__(self, session, name):
+        self.session = session
+        # TODO: load track from file if available,
+        # set inner and outer track line as Line()
 
 
 def get_color_from_ratio(ratio, fade_in=False, mode='yr'):
